@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BioRecall{% endblock %} | Adaptive Recall Engine</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="{% url 'recall:home' %}" class="nav-brand">
+                <span class="brand-icon">🧬</span> BioRecall
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'recall:home' %}">Home</a>
+                <a href="{% url 'recall:dashboard' %}">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Adaptive Recall Engine &mdash; A Low-Stakes Metacognitive Biology Learning Platform</p>
+            <p class="footer-sub">Aligned to Georgia Standards of Excellence &bull; Grades 6&ndash;8 Life Science</p>
+        </div>
+    </footer>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

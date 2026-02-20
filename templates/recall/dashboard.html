@@ -1,0 +1,56 @@
+{% extends "recall/base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>📊 Teacher Dashboard</h1>
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <span class="stat-number">{{ total_attempts }}</span>
+            <span class="stat-label">Total Sessions</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ mastery_count }}</span>
+            <span class="stat-label">Mastery Reached</span>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-content">
+    <h2>Recent Sessions</h2>
+    {% if attempts %}
+    <table class="dashboard-table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Topic</th>
+                <th>Mode</th>
+                <th>Status</th>
+                <th>Turns</th>
+                <th>Date</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attempt in attempts %}
+            <tr>
+                <td>{{ attempt.student_name }}</td>
+                <td><span class="topic-badge-sm">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</span></td>
+                <td>{{ attempt.get_mode_display }}</td>
+                <td>
+                    <span class="status-badge status-{{ attempt.status }}">
+                        {{ attempt.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ attempt.turn_count }}</td>
+                <td>{{ attempt.created_at|date:"M d, Y g:i a" }}</td>
+                <td><a href="{% url 'recall:summary' attempt_id=attempt.pk %}" class="btn btn-sm btn-outline">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="empty-state">No sessions yet. Students can start from the <a href="{% url 'recall:home' %}">home page</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

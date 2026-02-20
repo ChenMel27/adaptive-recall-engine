@@ -1,0 +1,61 @@
+{% extends "recall/base.html" %}
+{% block title %}Quiz – {{ attempt.topic.name }}{% endblock %}
+
+{% block content %}
+<div class="session-header">
+    <div class="session-info">
+        <h1>📝 Notes Quiz</h1>
+        <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
+        <p class="session-meta">Hi {{ attempt.student_name }}! &bull; Question {{ question_number }} of {{ total_questions }}</p>
+    </div>
+    <div class="session-progress">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {% widthratio question_number total_questions 100 %}%"></div>
+        </div>
+        <form method="post" action="{% url 'recall:opt_out' attempt_id=attempt.pk %}" class="opt-out-form">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm">Stop Here</button>
+        </form>
+    </div>
+</div>
+
+{% if last_feedback and attempt.turn_count > 0 %}
+<div class="feedback-card">
+    <h3>📝 Feedback on Your Last Answer</h3>
+    {% if last_feedback.is_correct %}
+    <div class="feedback-section correct">
+        <p>✅ {{ last_feedback.feedback }}</p>
+    </div>
+    {% else %}
+    <div class="feedback-section misconceptions">
+        <p>{{ last_feedback.feedback }}</p>
+        {% if last_feedback.correct_answer %}
+        <p class="correct-answer"><strong>Complete answer:</strong> {{ last_feedback.correct_answer }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="interaction-card">
+    <div class="quiz-question">
+        <span class="question-badge">Question {{ question_number }}</span>
+        <h2>{{ question.question }}</h2>
+        {% if question.hint %}
+        <details class="hint-section">
+            <summary>💡 Need a hint?</summary>
+            <p>{{ question.hint }}</p>
+        </details>
+        {% endif %}
+    </div>
+
+    <form method="post" action="{% url 'recall:quiz_submit' attempt_id=attempt.pk %}">
+        {% csrf_token %}
+        <textarea name="answer" class="form-textarea" rows="4"
+                  placeholder="Type your answer..." required autofocus></textarea>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Submit Answer →</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
