@@ -1,0 +1,106 @@
+{% extends "recall/base.html" %}
+{% block title %}Brain Dump – {{ attempt.topic.name }}{% endblock %}
+
+{% block content %}
+<div class="session-header">
+    <div class="session-info">
+        <h1>🧠 Brain Dump</h1>
+        <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
+        <p class="session-meta">Hi {{ attempt.student_name }}! &bull; Turn {{ attempt.turn_count|add:1 }} of {{ attempt.max_turns }}</p>
+    </div>
+    <div class="session-progress">
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {% widthratio attempt.turn_count attempt.max_turns 100 %}%"></div>
+        </div>
+        <form method="post" action="{% url 'recall:opt_out' attempt_id=attempt.pk %}" class="opt-out-form">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm">Stop Here</button>
+        </form>
+    </div>
+</div>
+
+{% if last_feedback %}
+<div class="feedback-card">
+    <h3>📝 Feedback</h3>
+
+    {% if last_feedback.overall_feedback %}
+    <p class="feedback-text">{{ last_feedback.overall_feedback }}</p>
+    {% endif %}
+
+    {% if last_feedback.misconceptions %}
+    <div class="feedback-section misconceptions">
+        <h4>🔍 Let's Clarify</h4>
+        {% for m in last_feedback.misconceptions %}
+        <div class="misconception-item">
+            <p class="misconception-claim">You said: "{{ m.claim }}"</p>
+            <p class="misconception-correction">{{ m.correction }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if attempt.demonstrated_concepts %}
+    <div class="feedback-section correct">
+        <h4>✅ Concepts You Demonstrated</h4>
+        <div class="concept-tags">
+            {% for concept in attempt.demonstrated_concepts %}
+            <span class="tag tag-success">{{ concept }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if attempt.missing_concepts %}
+    <div class="feedback-section missing">
+        <h4>📌 Still to Cover</h4>
+        <div class="concept-tags">
+            {% for concept in attempt.missing_concepts %}
+            <span class="tag tag-warning">{{ concept }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="interaction-card">
+    {% if is_first_turn %}
+    <h2>Write everything you remember about: <em>{{ attempt.topic.name }}</em></h2>
+    <p class="prompt-hint">Don't worry about being perfect — just get your ideas out! This is not graded.</p>
+    {% else %}
+    <h2>Follow-Up Question</h2>
+    <div class="follow-up-prompt">
+        <p>{{ follow_up_question }}</p>
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'recall:brain_dump_submit' attempt_id=attempt.pk %}">
+        {% csrf_token %}
+        <textarea name="response" class="form-textarea" rows="{% if is_first_turn %}8{% else %}5{% endif %}"
+                  placeholder="{% if is_first_turn %}Type everything you remember...{% else %}Type your answer here...{% endif %}"
+                  required autofocus></textarea>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Submit →</button>
+        </div>
+    </form>
+</div>
+
+{% if turns %}
+<details class="conversation-history">
+    <summary>View Conversation History ({{ turns.count }} turns)</summary>
+    <div class="history-list">
+        {% for turn in turns %}
+        <div class="history-item">
+            <div class="history-prompt"><strong>Turn {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
+            <div class="history-response">{{ turn.student_response }}</div>
+            {% if turn.is_correct is not None %}
+            <span class="tag {% if turn.is_correct %}tag-success{% else %}tag-warning{% endif %}">
+                {% if turn.is_correct %}✓ Correct{% else %}↻ Needs Review{% endif %}
+            </span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</details>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "recall/base.html" %}
+{% block title %}Session Summary – {{ attempt.topic.name }}{% endblock %}
+
+{% block content %}
+<div class="summary-page">
+    <div class="summary-header">
+        <h1>{{ status_message }}</h1>
+        <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
+        <p class="session-meta">{{ attempt.student_name }} &bull; {{ attempt.get_mode_display }} &bull; {{ attempt.turn_count }} turns</p>
+    </div>
+
+    <div class="summary-card">
+        <h2>📊 Your Session Summary</h2>
+        <p class="summary-text">{{ ai_summary.summary_text }}</p>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-section success-section">
+            <h3>✅ What You Know Well</h3>
+            {% if ai_summary.what_you_know_well %}
+            <ul class="summary-list">
+                {% for concept in ai_summary.what_you_know_well %}
+                <li>{{ concept }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state">Keep practicing — you're building knowledge!</p>
+            {% endif %}
+        </div>
+
+        <div class="summary-section review-section">
+            <h3>📖 What to Review Next</h3>
+            {% if ai_summary.what_to_review_next %}
+            <ul class="summary-list">
+                {% for concept in ai_summary.what_to_review_next %}
+                <li>{{ concept }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="empty-state">Nothing major to review — great job!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if ai_summary.reflection_prompt %}
+    <div class="reflection-card">
+        <h3>🤔 Something to Think About</h3>
+        <p class="reflection-prompt">{{ ai_summary.reflection_prompt }}</p>
+    </div>
+    {% endif %}
+
+    {% if turns %}
+    <details class="conversation-history">
+        <summary>📜 View Full Conversation ({{ turns.count }} turns)</summary>
+        <div class="history-list">
+            {% for turn in turns %}
+            <div class="history-item">
+                <div class="history-prompt"><strong>Turn {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
+                <div class="history-response">{{ turn.student_response }}</div>
+                {% if turn.is_correct is not None %}
+                <span class="tag {% if turn.is_correct %}tag-success{% else %}tag-warning{% endif %}">
+                    {% if turn.is_correct %}✓ Correct{% else %}↻ Needs Review{% endif %}
+                </span>
+                {% endif %}
+                {% if turn.ai_feedback.overall_feedback %}
+                <div class="history-feedback">{{ turn.ai_feedback.overall_feedback }}</div>
+                {% elif turn.ai_feedback.feedback %}
+                <div class="history-feedback">{{ turn.ai_feedback.feedback }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </details>
+    {% endif %}
+
+    <div class="summary-actions">
+        <a href="{% url 'recall:home' %}" class="btn btn-primary">Start a New Session →</a>
+        <a href="{% url 'recall:dashboard' %}" class="btn btn-outline">View Dashboard</a>
+    </div>
+</div>
+{% endblock %}
