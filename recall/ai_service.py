@@ -183,7 +183,7 @@ Respond ONLY with valid JSON:
 
 # ─── API call helpers ─────────────────────────────────────────────────────────
 
-def _chat(system_prompt: str, user_message: str, temperature: float = 0.3) -> dict:
+def _chat(system_prompt: str, user_message: str) -> dict:
     """
     Send a chat completion request and parse the JSON response.
     Returns a dict on success, or a dict with an 'error' key on failure.
@@ -191,13 +191,12 @@ def _chat(system_prompt: str, user_message: str, temperature: float = 0.3) -> di
     client = _get_client()
     try:
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
             ],
-            temperature=temperature,
-            max_tokens=1500,
+            max_completion_tokens=1500,
         )
         content = response.choices[0].message.content.strip()
         # Strip markdown code fences if present

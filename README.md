@@ -48,7 +48,7 @@ View all student sessions, status, and topic coverage at a glance.
 ## Tech Stack
 
 - **Backend**: Django 5.1 (Python 3.12)
-- **AI**: OpenAI GPT-4o-mini (via `openai` SDK)
+- **AI**: OpenAI GPT-5-mini (via `openai` SDK)
 - **Database**: SQLite (development)
 - **PDF Parsing**: PyPDF2
 - **Frontend**: Django templates + custom CSS (no JavaScript frameworks)
