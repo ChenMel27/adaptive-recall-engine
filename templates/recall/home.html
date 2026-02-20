@@ -3,23 +3,24 @@
 
 {% block content %}
 <div class="hero">
-    <h1>Welcome to <span class="highlight">BioRecall</span></h1>
-    <p class="hero-sub">A low-stakes way to check what you know &mdash; and discover what to review next.</p>
+    <span class="hero-mascot">🔬</span>
+    <h1>Hey there, scientist! 👋<br>Welcome to <span class="highlight">BioRecall</span></h1>
+    <p class="hero-sub">A chill, no-pressure way to test what you remember &mdash; and figure out what to study next. No grades, just growth!</p>
 </div>
 
 <form method="post" action="{% url 'recall:start_session' %}" class="start-form">
     {% csrf_token %}
 
     <div class="form-section">
-        <label for="student_name" class="form-label">Your First Name</label>
+        <label for="student_name" class="form-label">🙋 What's your first name?</label>
         <input type="text" id="student_name" name="student_name" class="form-input"
-               placeholder="Enter your first name" required autofocus>
+               placeholder="Type your name here..." required autofocus>
     </div>
 
     <div class="form-section">
-        <label for="topic" class="form-label">Choose a Topic</label>
+        <label for="topic" class="form-label">📚 Pick a topic to explore</label>
         <select id="topic" name="topic" class="form-select" required>
-            <option value="">Select a topic...</option>
+            <option value="">Choose a topic...</option>
             {% for topic in topics %}
             <option value="{{ topic.pk }}">[{{ topic.standard }}] {{ topic.name }}</option>
             {% endfor %}
@@ -27,15 +28,15 @@
     </div>
 
     <div class="form-section">
-        <p class="form-label">Choose Your Mode</p>
+        <p class="form-label">🎮 How do you want to learn?</p>
         <div class="mode-cards">
             <label class="mode-card">
                 <input type="radio" name="mode" value="brain_dump" required>
                 <div class="mode-card-content">
                     <div class="mode-icon">🧠</div>
                     <h3>Brain Dump</h3>
-                    <p>Type everything you remember about a topic. Get feedback on what you know and what to review.</p>
-                    <span class="mode-tag">Active Recall</span>
+                    <p>Dump everything you remember about a topic! Get instant feedback on what you nailed and what to review.</p>
+                    <span class="mode-tag">⚡ Active Recall</span>
                 </div>
             </label>
             <label class="mode-card">
@@ -43,38 +44,38 @@
                 <div class="mode-card-content">
                     <div class="mode-icon">📄</div>
                     <h3>Notes Quiz</h3>
-                    <p>Upload your class notes as a PDF. Get a personalized quiz based on what's in your notes.</p>
-                    <span class="mode-tag">Notes Review</span>
+                    <p>Upload your class notes as a PDF and get quizzed on the key ideas. It's like having a study buddy!</p>
+                    <span class="mode-tag">📝 Notes Review</span>
                 </div>
             </label>
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-lg">Start Learning →</button>
+    <button type="submit" class="btn btn-primary btn-lg">Let's Go! 🚀</button>
 </form>
 
 <section class="info-section">
-    <h2>How It Works</h2>
+    <h2>✨ How It Works</h2>
     <div class="steps-grid">
         <div class="step-card">
             <div class="step-number">1</div>
-            <h3>Choose a topic</h3>
-            <p>Pick from Georgia Standards biology topics aligned to your class.</p>
+            <h3>Pick your topic</h3>
+            <p>Choose from real Georgia Standards biology topics that match what you're learning in class.</p>
         </div>
         <div class="step-card">
             <div class="step-number">2</div>
             <h3>Show what you know</h3>
-            <p>Brain dump everything you remember, or upload your notes for a quiz.</p>
+            <p>Brain dump everything from memory, or upload your notes and we'll quiz you on the key stuff.</p>
         </div>
         <div class="step-card">
             <div class="step-number">3</div>
-            <h3>Get feedback</h3>
-            <p>See what you understand well and where you have gaps &mdash; no grades, no pressure.</p>
+            <h3>Get instant feedback</h3>
+            <p>See what you totally nailed ✅ and where you might have gaps — zero judgment, zero grades!</p>
         </div>
         <div class="step-card">
             <div class="step-number">4</div>
-            <h3>Strengthen understanding</h3>
-            <p>Answer follow-up questions that target your specific gaps.</p>
+            <h3>Level up your knowledge</h3>
+            <p>Answer follow-up questions that target your specific gaps. Each answer gets you closer to mastery! 🏆</p>
         </div>
     </div>
 </section>

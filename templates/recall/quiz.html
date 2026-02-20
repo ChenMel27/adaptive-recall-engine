@@ -6,7 +6,7 @@
     <div class="session-info">
         <h1>📝 Notes Quiz</h1>
         <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
-        <p class="session-meta">Hi {{ attempt.student_name }}! &bull; Question {{ question_number }} of {{ total_questions }}</p>
+        <p class="session-meta">Hey {{ attempt.student_name }}! &bull; Question {{ question_number }} of {{ total_questions }} &bull; <span class="streak-indicator">🔥 You got this!</span></p>
     </div>
     <div class="session-progress">
         <div class="progress-bar">
@@ -14,23 +14,23 @@
         </div>
         <form method="post" action="{% url 'recall:opt_out' attempt_id=attempt.pk %}" class="opt-out-form">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline btn-sm">Stop Here</button>
+            <button type="submit" class="btn btn-outline btn-sm">I'm Done 👋</button>
         </form>
     </div>
 </div>
 
 {% if last_feedback and attempt.turn_count > 0 %}
 <div class="feedback-card">
-    <h3>📝 Feedback on Your Last Answer</h3>
+    <h3>💬 Feedback on Your Last Answer</h3>
     {% if last_feedback.is_correct %}
     <div class="feedback-section correct">
-        <p>✅ {{ last_feedback.feedback }}</p>
+        <p>🎯 {{ last_feedback.feedback }}</p>
     </div>
     {% else %}
     <div class="feedback-section misconceptions">
         <p>{{ last_feedback.feedback }}</p>
         {% if last_feedback.correct_answer %}
-        <p class="correct-answer"><strong>Complete answer:</strong> {{ last_feedback.correct_answer }}</p>
+        <p class="correct-answer"><strong>💡 Full answer:</strong> {{ last_feedback.correct_answer }}</p>
         {% endif %}
     </div>
     {% endif %}
@@ -39,23 +39,42 @@
 
 <div class="interaction-card">
     <div class="quiz-question">
-        <span class="question-badge">Question {{ question_number }}</span>
+        <span class="question-badge">Question {{ question_number }} ✏️</span>
         <h2>{{ question.question }}</h2>
         {% if question.hint %}
         <details class="hint-section">
-            <summary>💡 Need a hint?</summary>
+            <summary>💡 Need a hint? (No shame in that!)</summary>
             <p>{{ question.hint }}</p>
         </details>
         {% endif %}
     </div>
 
-    <form method="post" action="{% url 'recall:quiz_submit' attempt_id=attempt.pk %}">
+    <form method="post" action="{% url 'recall:quiz_submit' attempt_id=attempt.pk %}" id="quiz-form">
         {% csrf_token %}
         <textarea name="answer" class="form-textarea" rows="4"
-                  placeholder="Type your answer..." required autofocus></textarea>
+                  placeholder="Type your answer here... 💭" required autofocus></textarea>
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Submit Answer →</button>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Submit Answer 🚀</button>
         </div>
     </form>
+
+    <div class="thinking-overlay" id="thinking-overlay">
+        <div class="thinking-bubble">
+            <div class="thinking-dots">
+                <span></span><span></span><span></span>
+            </div>
+            <span class="thinking-text">🧬 BioRecall is checking your answer...</span>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('quiz-form').addEventListener('submit', function() {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'Checking... 🧬';
+    document.getElementById('thinking-overlay').classList.add('active');
+});
+</script>
 {% endblock %}

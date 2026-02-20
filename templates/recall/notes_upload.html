@@ -6,22 +6,22 @@
     <div class="session-info">
         <h1>📄 Upload Your Notes</h1>
         <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
-        <p class="session-meta">Hi {{ attempt.student_name }}!</p>
+        <p class="session-meta">Hey {{ attempt.student_name }}! Let's turn your notes into a quiz 🎯</p>
     </div>
 </div>
 
 <div class="interaction-card">
-    <h2>Upload your class notes for: <em>{{ attempt.topic.name }}</em></h2>
-    <p class="prompt-hint">Upload a PDF of your class notes. We'll create a personalized quiz based on what's in your notes!</p>
-    <p class="prompt-hint"><strong>Note:</strong> Please upload a text-based PDF (not a scanned image).</p>
+    <h2>Drop your class notes for: <em>{{ attempt.topic.name }}</em></h2>
+    <p class="prompt-hint">📎 Upload a PDF of your class notes and we'll whip up a personalized quiz just for you!</p>
+    <p class="prompt-hint"><strong>Heads up:</strong> Make sure it's a text-based PDF (not a photo or scan).</p>
 
     <form method="post" action="{% url 'recall:notes_upload_submit' attempt_id=attempt.pk %}" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="file-upload-area">
             <label for="notes_file" class="file-upload-label">
-                <span class="file-upload-icon">📎</span>
-                <span class="file-upload-text">Choose a PDF file</span>
+                <span class="file-upload-icon">📂</span>
+                <span class="file-upload-text">Click to pick a PDF file</span>
                 <input type="file" id="notes_file" name="notes_file" accept=".pdf" required class="file-upload-input">
             </label>
         </div>
@@ -37,17 +37,17 @@
         {% endif %}
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Upload & Generate Quiz →</button>
+            <button type="submit" class="btn btn-primary">Upload & Generate My Quiz 🚀</button>
         </div>
     </form>
 </div>
 
 <div class="info-card">
-    <h3>💡 What happens next?</h3>
+    <h3>✨ What happens next?</h3>
     <ol>
-        <li>We'll read through your notes and identify the key concepts.</li>
-        <li>You'll get a short quiz focused on any gaps in your notes.</li>
-        <li>Each question includes immediate feedback — no grades!</li>
+        <li>🔍 We'll read through your notes and find the key biology concepts.</li>
+        <li>📝 You'll get a short quiz focused on any gaps we spot in your notes.</li>
+        <li>💬 Each question comes with instant feedback — no grades, just learning!</li>
     </ol>
 </div>
 {% endblock %}

@@ -3,20 +3,39 @@
 
 {% block content %}
 <div class="summary-page">
+    {% if attempt.status == 'mastery' %}
+    <div id="confetti-container" class="confetti-container"></div>
+    {% endif %}
+
     <div class="summary-header">
-        <h1>{{ status_message }}</h1>
+        {% if attempt.status == 'mastery' %}
+        <span class="hero-mascot">🏆</span>
+        <h1>Amazing work, {{ attempt.student_name }}! 🎉</h1>
+        {% elif attempt.status == 'max_turns' %}
+        <span class="hero-mascot">💪</span>
+        <h1>Great effort, {{ attempt.student_name }}!</h1>
+        {% else %}
+        <span class="hero-mascot">👋</span>
+        <h1>Thanks for practicing, {{ attempt.student_name }}!</h1>
+        {% endif %}
         <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
-        <p class="session-meta">{{ attempt.student_name }} &bull; {{ attempt.get_mode_display }} &bull; {{ attempt.turn_count }} turns</p>
+        <p class="session-meta">{{ attempt.get_mode_display }} &bull; {{ attempt.turn_count }} rounds completed</p>
     </div>
 
+    {% if attempt.status == 'mastery' %}
+    <div class="encouragement-banner">🏆 You reached mastery! Your brain is on fire! 🔥</div>
+    {% elif attempt.status == 'max_turns' %}
+    <div class="encouragement-banner" style="background: linear-gradient(135deg, #00b894, #55efc4);">💪 You completed all rounds! Every answer made you stronger!</div>
+    {% endif %}
+
     <div class="summary-card">
-        <h2>📊 Your Session Summary</h2>
+        <h2>📊 Your Session Recap</h2>
         <p class="summary-text">{{ ai_summary.summary_text }}</p>
     </div>
 
     <div class="summary-grid">
         <div class="summary-section success-section">
-            <h3>✅ What You Know Well</h3>
+            <h3>🎯 What You Nailed</h3>
             {% if ai_summary.what_you_know_well %}
             <ul class="summary-list">
                 {% for concept in ai_summary.what_you_know_well %}
@@ -24,7 +43,7 @@
                 {% endfor %}
             </ul>
             {% else %}
-            <p class="empty-state">Keep practicing — you're building knowledge!</p>
+            <p class="empty-state">Keep at it — you're building knowledge every session!</p>
             {% endif %}
         </div>
 
@@ -37,29 +56,29 @@
                 {% endfor %}
             </ul>
             {% else %}
-            <p class="empty-state">Nothing major to review — great job!</p>
+            <p class="empty-state">Nothing major to review — you crushed it! 🎉</p>
             {% endif %}
         </div>
     </div>
 
     {% if ai_summary.reflection_prompt %}
     <div class="reflection-card">
-        <h3>🤔 Something to Think About</h3>
+        <h3>🤔 Something to Think About...</h3>
         <p class="reflection-prompt">{{ ai_summary.reflection_prompt }}</p>
     </div>
     {% endif %}
 
     {% if turns %}
     <details class="conversation-history">
-        <summary>📜 View Full Conversation ({{ turns.count }} turns)</summary>
+        <summary>📜 See Your Full Conversation ({{ turns.count }} rounds)</summary>
         <div class="history-list">
             {% for turn in turns %}
             <div class="history-item">
-                <div class="history-prompt"><strong>Turn {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
+                <div class="history-prompt"><strong>Round {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
                 <div class="history-response">{{ turn.student_response }}</div>
                 {% if turn.is_correct is not None %}
                 <span class="tag {% if turn.is_correct %}tag-success{% else %}tag-warning{% endif %}">
-                    {% if turn.is_correct %}✓ Correct{% else %}↻ Needs Review{% endif %}
+                    {% if turn.is_correct %}🎯 Nailed It{% else %}🔄 Keep Exploring{% endif %}
                 </span>
                 {% endif %}
                 {% if turn.ai_feedback.overall_feedback %}
@@ -74,8 +93,32 @@
     {% endif %}
 
     <div class="summary-actions">
-        <a href="{% url 'recall:home' %}" class="btn btn-primary">Start a New Session →</a>
-        <a href="{% url 'recall:dashboard' %}" class="btn btn-outline">View Dashboard</a>
+        <a href="{% url 'recall:home' %}" class="btn btn-primary">Try Another Topic 🚀</a>
+        <a href="{% url 'recall:dashboard' %}" class="btn btn-outline">📊 Dashboard</a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if attempt.status == 'mastery' %}
+<script>
+(function() {
+    var container = document.getElementById('confetti-container');
+    var colors = ['#6c5ce7', '#fd79a8', '#00b894', '#fdcb6e', '#74b9ff', '#e17055', '#a29bfe'];
+    for (var i = 0; i < 60; i++) {
+        var piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 2 + 's';
+        piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+        piece.style.width = (6 + Math.random() * 8) + 'px';
+        piece.style.height = (6 + Math.random() * 8) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        container.appendChild(piece);
+    }
+    setTimeout(function() { container.style.display = 'none'; }, 5000);
+})();
+</script>
+{% endif %}
 {% endblock %}

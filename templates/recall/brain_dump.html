@@ -6,7 +6,7 @@
     <div class="session-info">
         <h1>🧠 Brain Dump</h1>
         <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
-        <p class="session-meta">Hi {{ attempt.student_name }}! &bull; Turn {{ attempt.turn_count|add:1 }} of {{ attempt.max_turns }}</p>
+        <p class="session-meta">Hey {{ attempt.student_name }}! &bull; Round {{ attempt.turn_count|add:1 }} of {{ attempt.max_turns }} &bull; <span class="streak-indicator">🔥 Keep going!</span></p>
     </div>
     <div class="session-progress">
         <div class="progress-bar">
@@ -14,14 +14,14 @@
         </div>
         <form method="post" action="{% url 'recall:opt_out' attempt_id=attempt.pk %}" class="opt-out-form">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline btn-sm">Stop Here</button>
+            <button type="submit" class="btn btn-outline btn-sm">I'm Done 👋</button>
         </form>
     </div>
 </div>
 
 {% if last_feedback %}
 <div class="feedback-card">
-    <h3>📝 Feedback</h3>
+    <h3>💬 Here's what I noticed...</h3>
 
     {% if last_feedback.overall_feedback %}
     <p class="feedback-text">{{ last_feedback.overall_feedback }}</p>
@@ -29,11 +29,11 @@
 
     {% if last_feedback.misconceptions %}
     <div class="feedback-section misconceptions">
-        <h4>🔍 Let's Clarify</h4>
+        <h4>🔍 Let's Clear This Up</h4>
         {% for m in last_feedback.misconceptions %}
         <div class="misconception-item">
-            <p class="misconception-claim">You said: "{{ m.claim }}"</p>
-            <p class="misconception-correction">{{ m.correction }}</p>
+            <p class="misconception-claim">You wrote: "{{ m.claim }}"</p>
+            <p class="misconception-correction">💡 {{ m.correction }}</p>
         </div>
         {% endfor %}
     </div>
@@ -41,10 +41,10 @@
 
     {% if attempt.demonstrated_concepts %}
     <div class="feedback-section correct">
-        <h4>✅ Concepts You Demonstrated</h4>
+        <h4>🎯 Concepts You Nailed</h4>
         <div class="concept-tags">
             {% for concept in attempt.demonstrated_concepts %}
-            <span class="tag tag-success">{{ concept }}</span>
+            <span class="tag tag-success">✓ {{ concept }}</span>
             {% endfor %}
         </div>
     </div>
@@ -52,7 +52,7 @@
 
     {% if attempt.missing_concepts %}
     <div class="feedback-section missing">
-        <h4>📌 Still to Cover</h4>
+        <h4>📌 Still to Explore</h4>
         <div class="concept-tags">
             {% for concept in attempt.missing_concepts %}
             <span class="tag tag-warning">{{ concept }}</span>
@@ -65,37 +65,46 @@
 
 <div class="interaction-card">
     {% if is_first_turn %}
-    <h2>Write everything you remember about: <em>{{ attempt.topic.name }}</em></h2>
-    <p class="prompt-hint">Don't worry about being perfect — just get your ideas out! This is not graded.</p>
+    <h2>Tell me everything you know about: <em>{{ attempt.topic.name }}</em></h2>
+    <p class="prompt-hint">💭 Don't stress about being perfect — just dump everything that comes to mind! This is NOT graded.</p>
     {% else %}
-    <h2>Follow-Up Question</h2>
+    <h2>🤔 Follow-Up Question</h2>
     <div class="follow-up-prompt">
         <p>{{ follow_up_question }}</p>
     </div>
     {% endif %}
 
-    <form method="post" action="{% url 'recall:brain_dump_submit' attempt_id=attempt.pk %}">
+    <form method="post" action="{% url 'recall:brain_dump_submit' attempt_id=attempt.pk %}" id="brain-dump-form">
         {% csrf_token %}
         <textarea name="response" class="form-textarea" rows="{% if is_first_turn %}8{% else %}5{% endif %}"
-                  placeholder="{% if is_first_turn %}Type everything you remember...{% else %}Type your answer here...{% endif %}"
+                  placeholder="{% if is_first_turn %}Start typing what you remember... 💭{% else %}Type your answer here... 💡{% endif %}"
                   required autofocus></textarea>
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Submit →</button>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Send It! 🚀</button>
         </div>
     </form>
+
+    <div class="thinking-overlay" id="thinking-overlay">
+        <div class="thinking-bubble">
+            <div class="thinking-dots">
+                <span></span><span></span><span></span>
+            </div>
+            <span class="thinking-text">🧬 BioRecall is analyzing your answer...</span>
+        </div>
+    </div>
 </div>
 
 {% if turns %}
 <details class="conversation-history">
-    <summary>View Conversation History ({{ turns.count }} turns)</summary>
+    <summary>📜 Your Conversation So Far ({{ turns.count }} rounds)</summary>
     <div class="history-list">
         {% for turn in turns %}
         <div class="history-item">
-            <div class="history-prompt"><strong>Turn {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
+            <div class="history-prompt"><strong>Round {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
             <div class="history-response">{{ turn.student_response }}</div>
             {% if turn.is_correct is not None %}
             <span class="tag {% if turn.is_correct %}tag-success{% else %}tag-warning{% endif %}">
-                {% if turn.is_correct %}✓ Correct{% else %}↻ Needs Review{% endif %}
+                {% if turn.is_correct %}🎯 Nailed It{% else %}🔄 Keep Exploring{% endif %}
             </span>
             {% endif %}
         </div>
@@ -103,4 +112,14 @@
     </div>
 </details>
 {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('brain-dump-form').addEventListener('submit', function() {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'Analyzing... 🧬';
+    document.getElementById('thinking-overlay').classList.add('active');
+});
+</script>
 {% endblock %}
