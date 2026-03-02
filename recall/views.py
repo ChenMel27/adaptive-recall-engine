@@ -424,15 +424,24 @@ def summary(request, attempt_id):
 
     turns = attempt.turns.all()
 
-    # Generate AI summary
-    ai_summary = ai_service.generate_session_summary(attempt)
-    if "error" in ai_summary:
+    # If student opted out before completing any rounds, skip AI summary
+    if attempt.turn_count == 0:
         ai_summary = {
-            "what_you_know_well": attempt.demonstrated_concepts,
-            "what_to_review_next": attempt.missing_concepts,
-            "summary_text": "Great job working through this session! Review the concepts listed below to strengthen your understanding.",
-            "reflection_prompt": f"What was the most interesting thing you learned about {attempt.topic.name}?",
+            "what_you_know_well": [],
+            "what_to_review_next": [],
+            "summary_text": "",
+            "reflection_prompt": "",
         }
+    else:
+        # Generate AI summary
+        ai_summary = ai_service.generate_session_summary(attempt)
+        if "error" in ai_summary:
+            ai_summary = {
+                "what_you_know_well": attempt.demonstrated_concepts,
+                "what_to_review_next": attempt.missing_concepts,
+                "summary_text": "Great job working through this session! Review the concepts listed below to strengthen your understanding.",
+                "reflection_prompt": f"What was the most interesting thing you learned about {attempt.topic.name}?",
+            }
 
     status_messages = {
         "mastery": "🎉 Amazing! You've demonstrated strong understanding of this topic!",

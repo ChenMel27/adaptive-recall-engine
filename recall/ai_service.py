@@ -29,9 +29,31 @@ Your job:
 1. Identify which expected concepts the student demonstrated understanding of.
 2. Identify which expected concepts are MISSING from their response.
 3. Identify any MISCONCEPTIONS (things the student stated incorrectly).
-4. For each misconception, write a SHORT, age-appropriate correction (2-3 sentences max).
+4. For each misconception:
+   - First, clearly and specifically explain WHAT is wrong and WHY it's wrong.
+   - Then give the correct information in 1-2 sentences.
+   - Do NOT skip explaining the error — don't just state the right answer.
+   - BAD correction: "Humans belong to domain Eukarya because their cells have a nucleus."
+   - GOOD correction: "You matched humans with Bacteria, but that's not quite right — Bacteria is a domain of tiny single-celled organisms without a nucleus. Humans actually belong to domain Eukarya."
 5. Generate ONE targeted follow-up question that probes the most critical gap.
 6. Keep language encouraging, low-stakes, and at a 6th-8th grade reading level.
+
+CRITICAL RULES FOR DEMONSTRATED CONCEPTS:
+- Only mark a concept as "demonstrated" if the student clearly EXPLAINS or DESCRIBES it with substance.
+- Nicknames, buzzwords, or vague references do NOT count as demonstrating a concept.
+- BAD: Student says "powerhouse of the cell" → marking "Mitochondria produce energy (ATP) through cellular respiration" as demonstrated. They never mentioned ATP or cellular respiration.
+- GOOD: Student says "powerhouse of the cell" → that concept stays in missing_concepts because they didn't explain what mitochondria actually do.
+- The student must show they UNDERSTAND the concept, not just that they've heard a catchphrase.
+- When in doubt, keep the concept in missing_concepts and use the follow-up question to probe deeper.
+
+CRITICAL RULES FOR FOLLOW-UP QUESTIONS:
+- NEVER include the answer, specific terms, names, or lists inside the question.
+- Do NOT name the domains, kingdoms, organelles, processes, etc. in the question.
+- Ask the student to RECALL the information from memory — not to confirm something you stated.
+- BAD example: "Can you name the three domains: Bacteria, Archaea, and Eukarya?"
+- GOOD example: "Scientists group all living things into three big categories called domains. Can you name any of them?"
+- BAD example: "What does the mitochondria do — it produces energy, right?"
+- GOOD example: "There's an organelle nicknamed the 'powerhouse of the cell.' Do you know which one that is and what it does?"
 
 Expected concepts for this topic:
 {expected_concepts}
@@ -61,10 +83,29 @@ Here is the conversation so far:
 
 The student just answered a follow-up question. Evaluate their answer:
 1. Is their response correct or mostly correct? (is_correct: true/false)
-2. If incorrect, provide a SHORT, encouraging correction (2-3 sentences).
+2. If incorrect:
+   - First, clearly and specifically explain WHAT the student got wrong and WHY it's wrong.
+   - Then provide the correct information in 1-2 sentences.
+   - Do NOT skip explaining the error — don't just state the right answer.
+   - BAD: "Mitochondria produce energy through cellular respiration."
+   - GOOD: "You said the nucleus produces energy, but the nucleus actually controls the cell's activities and holds DNA. The organelle that produces energy is a different one — see if you can figure out which!"
 3. Update the lists of demonstrated, missing, and misconceived concepts.
 4. If there are still gaps, generate ONE new follow-up question.
 5. If the student has shown strong understanding, say so encouragingly.
+
+CRITICAL RULES FOR DEMONSTRATED CONCEPTS:
+- Only mark a concept as "demonstrated" if the student clearly EXPLAINS or DESCRIBES it with real detail.
+- Nicknames, buzzwords, or vague references do NOT count.
+- BAD: Student says "powerhouse of the cell" → marking "Mitochondria produce energy (ATP) through cellular respiration" as demonstrated.
+- GOOD: Student says "mitochondria make ATP through cellular respiration" → NOW that concept is demonstrated.
+- When in doubt, keep the concept in missing_concepts and probe further with a follow-up question.
+
+CRITICAL RULES FOR FOLLOW-UP QUESTIONS:
+- NEVER include the answer, specific terms, names, or lists inside the question.
+- Do NOT name the domains, kingdoms, organelles, processes, etc. in the question.
+- Ask the student to RECALL the information from memory — not to confirm something you stated.
+- Use hints or descriptions instead of giving away the term (e.g., "the powerhouse of the cell" instead of "mitochondria").
+- The goal is active recall — if the question contains the answer, the student learns nothing.
 
 Expected concepts for this topic:
 {expected_concepts}
@@ -191,14 +232,19 @@ def _chat(system_prompt: str, user_message: str) -> dict:
     client = _get_client()
     try:
         response = client.chat.completions.create(
-            model="gpt-5-mini",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
             ],
             max_completion_tokens=1500,
         )
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        if not content:
+            logger.error("OpenAI returned empty content. Finish reason: %s",
+                         response.choices[0].finish_reason)
+            return {"error": "AI returned an empty response. Please try again."}
+        content = content.strip()
         # Strip markdown code fences if present
         if content.startswith("```"):
             content = content.split("\n", 1)[1]  # remove first line

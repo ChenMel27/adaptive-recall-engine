@@ -52,12 +52,7 @@
 
     {% if attempt.missing_concepts %}
     <div class="feedback-section missing">
-        <h4>📌 Still to Explore</h4>
-        <div class="concept-tags">
-            {% for concept in attempt.missing_concepts %}
-            <span class="tag tag-warning">{{ concept }}</span>
-            {% endfor %}
-        </div>
+        <p>📌 There are still <strong>{{ attempt.missing_concepts|length }}</strong> concepts to explore — the follow-up questions will help you get there!</p>
     </div>
     {% endif %}
 </div>

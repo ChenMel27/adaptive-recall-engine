@@ -8,7 +8,10 @@
     {% endif %}
 
     <div class="summary-header">
-        {% if attempt.status == 'mastery' %}
+        {% if attempt.turn_count == 0 %}
+        <span class="hero-mascot">👋</span>
+        <h1>No worries, {{ attempt.student_name }}!</h1>
+        {% elif attempt.status == 'mastery' %}
         <span class="hero-mascot">🏆</span>
         <h1>Amazing work, {{ attempt.student_name }}! 🎉</h1>
         {% elif attempt.status == 'max_turns' %}
@@ -19,8 +22,19 @@
         <h1>Thanks for practicing, {{ attempt.student_name }}!</h1>
         {% endif %}
         <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
+        {% if attempt.turn_count == 0 %}
+        <p class="session-meta">{{ attempt.get_mode_display }} &bull; No rounds completed</p>
+        {% else %}
         <p class="session-meta">{{ attempt.get_mode_display }} &bull; {{ attempt.turn_count }} rounds completed</p>
+        {% endif %}
     </div>
+
+    {% if attempt.turn_count == 0 %}
+    <div class="summary-card">
+        <h2>🚀 Ready When You Are</h2>
+        <p class="summary-text">You didn't get to answer any questions this time, and that's totally okay! When you're ready, come back and give <strong>{{ attempt.topic.name }}</strong> a try — your brain might surprise you with how much it already knows.</p>
+    </div>
+    {% else %}
 
     {% if attempt.status == 'mastery' %}
     <div class="encouragement-banner">🏆 You reached mastery! Your brain is on fire! 🔥</div>
@@ -66,6 +80,8 @@
         <h3>🤔 Something to Think About...</h3>
         <p class="reflection-prompt">{{ ai_summary.reflection_prompt }}</p>
     </div>
+    {% endif %}
+
     {% endif %}
 
     {% if turns %}
