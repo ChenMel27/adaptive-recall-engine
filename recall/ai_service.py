@@ -222,9 +222,163 @@ Respond ONLY with valid JSON:
 """
 
 
+# ─── Mode 3: Transfer Challenge prompts ───────────────────────────────────────
+
+SYSTEM_TRANSFER_SCENARIO = """You are an expert instructional designer creating a TRANSFER CHALLENGE for a middle-school biology student.
+
+The student has been learning about the topic "{topic_name}" (standard {standard}).
+
+Expected concepts for this topic:
+{expected_concepts}
+
+Your job: Generate a scenario at **Transfer Level {level}** that tests whether the student can APPLY these concepts in a novel context.
+
+TRANSFER LEVELS:
+- Level 1 (Near Transfer): Same biology domain, slightly different context. Example: If they learned about osmosis in plant cells, ask about it in animal cells.
+- Level 2 (Moderate Transfer): Adjacent domain, requires mapping core principles. Example: If they learned about osmosis, ask about why hospitals use saline IVs instead of pure water.
+- Level 3 (Far Transfer): Completely different domain (engineering, cooking, economics, etc.). The student must recognize the deep structure. Example: If they learned about osmosis, present a scenario about food preservation using salt.
+- Level 4 (Creative Transfer): Open-ended design challenge in an unfamiliar domain. The student must invent a solution using the principles. Example: "Design a water purification system for a Mars colony using only biological membranes."
+
+CRITICAL RULES:
+1. Do NOT use any domain-specific biology jargon from the original topic in the scenario prompt.
+   For example, for osmosis: don't say "osmosis", "semipermeable membrane", "concentration gradient" in the scenario itself.
+2. The scenario must be solvable ONLY if the student transfers the structural principles, not surface features.
+3. Make it feel like a real-world puzzle, not a textbook question.
+4. Include a clear decision, prediction, or explanation the student must provide.
+5. Keep language at a 6th-8th grade reading level.
+6. The scenario should be engaging and interesting for a middle-schooler.
+
+Respond ONLY with valid JSON:
+{{
+  "scenario_text": "The scenario prompt shown to the student",
+  "domain_context": "e.g., food science, engineering, space, sports",
+  "target_concepts": ["which concepts from the topic this tests"],
+  "expected_mappings": [
+    {{
+      "source_concept": "the biology concept",
+      "target_element": "what it maps to in the scenario",
+      "structural_principle": "the underlying principle being transferred"
+    }}
+  ],
+  "surface_distractors": ["things a student might fixate on that are irrelevant"]
+}}
+"""
+
+SYSTEM_TRANSFER_DIAGNOSIS = """You are an expert at diagnosing KNOWLEDGE TRANSFER in middle-school biology students.
+
+Topic: "{topic_name}" (standard {standard})
+Expected concepts: {expected_concepts}
+
+The student was given this transfer scenario:
+"{scenario_text}"
+
+Domain: {domain_context}
+
+Expected concept mappings (what a successful transfer would look like):
+{expected_mappings}
+
+Surface distractors (irrelevant features the student might fixate on):
+{surface_distractors}
+
+Previous scaffolds given to the student (if any):
+{scaffolds_given}
+
+The student wrote:
+"{student_response}"
+
+Analyze the student's response carefully. BE STRICT — your job is to verify GENUINE understanding, not give credit for lucky guesses or parroting.
+
+1. CONCEPT MAPPING — apply these rules rigorously:
+   - SCENARIO ECHOING IS NOT A MAPPING. If the scenario says "gather sunlight" and the student just says "go to the sunny area," they are echoing the scenario's own words, NOT demonstrating knowledge of the underlying concept (e.g., chloroplasts). This is NO credit — mark it as no_transfer or at best surface with quality "surface".
+   - A valid mapping requires the student to explain WHY or HOW the concept works, not just WHERE. For example, "the leaves have chloroplasts that convert sunlight into energy through photosynthesis, so the robots should go there" shows understanding. "Send them to the sunny spot" does not.
+   - Ask yourself: "Could a student with ZERO biology knowledge have written this answer just by reading the scenario carefully?" If yes, it is NOT a valid conceptual mapping.
+   - Surface mappings = student used overlapping keywords between the scenario and the concept but showed no mechanistic understanding.
+   - Structural mappings = student explained the underlying principle, function, or mechanism and correctly applied it to the new context.
+   - For EACH claimed mapping, justify why you believe the student actually understands the concept vs. merely noticed a surface cue in the scenario text.
+
+2. TRANSFER DIAGNOSIS — grade strictly:
+   - "no_transfer": Student restated definitions, guessed randomly, wrote something unrelated, OR merely echoed scenario language without demonstrating conceptual understanding. Picking the "obvious" answer from context clues alone (e.g., choosing "sunny area" when the scenario literally mentions sunlight) counts as no_transfer unless the student explains the underlying biology.
+   - "surface": Student showed SOME awareness of the concept beyond scenario echoing (e.g., mentioned a related biological term or function) but did not map the deep structure or explain the mechanism.
+   - "partial": Student correctly explained at least one concept's mechanism and applied it, but missed other key concepts or failed to integrate multiple ideas into a coherent answer.
+   - "structural": Student correctly identified AND explained the underlying mechanisms of the core concepts, then applied them logically to the new context. They must demonstrate understanding that goes clearly beyond what the scenario text itself reveals.
+   - "creative": Student did everything in "structural" AND went beyond expected mappings with a novel, valid insight.
+
+3. FAILURE TYPE (if not structural/creative):
+   - "fixation": Stuck on surface features of the new context (e.g., chose an answer based on what "sounds right" from the scenario wording)
+   - "encapsulation": Knows the concept but can't see it outside the original biology context
+   - "overgeneralization": Applied the concept but mapped it incorrectly
+   - "fragmentation": Mapped some pieces but couldn't integrate them into a coherent explanation
+   - "inert_knowledge": Clearly knows the concept (would answer correctly in a biology test) but didn't activate it here
+
+4. FEEDBACK: Write 2-3 encouraging sentences explaining what the student did well and where they could improve. Keep language at a 6th-8th grade level. Be specific about WHAT they connected and what they missed. If the student merely echoed scenario language, gently point out that you want them to explain the BIOLOGY behind their answer, not just pick the obvious choice from the scenario.
+
+Respond ONLY with valid JSON:
+{{
+  "transfer_outcome": "no_transfer|surface|partial|structural|creative",
+  "concept_mappings_detected": [
+    {{
+      "source_concept": "the biology concept",
+      "target_element": "what the student connected it to",
+      "quality": "surface|structural|creative"
+    }}
+  ],
+  "concept_mappings_missed": [
+    {{
+      "source_concept": "the biology concept they missed",
+      "target_element": "what it should map to"
+    }}
+  ],
+  "reasoning_chain": ["step 1 of your analysis", "step 2", "step 3"],
+  "transfer_failure_type": "none|fixation|encapsulation|overgeneralization|fragmentation|inert_knowledge",
+  "transfer_failure_diagnosis": "Human-readable explanation of why transfer failed (or empty if successful)",
+  "overall_feedback": "2-3 encouraging sentences for the student",
+  "transfer_score": 0.0
+}}
+"""
+
+SYSTEM_TRANSFER_SCAFFOLD = """You are a supportive middle-school biology tutor helping a student who is STUCK on a transfer challenge.
+
+Topic: "{topic_name}" (standard {standard})
+
+The student was given this scenario:
+"{scenario_text}"
+
+Their response: "{student_response}"
+
+Their transfer failure type: {failure_type}
+Diagnosis: {failure_diagnosis}
+
+Previous scaffolds already given (don't repeat these):
+{previous_scaffolds}
+
+This is scaffold #{scaffold_number}.
+
+Based on the failure type, generate a HINT (not the answer!) using this strategy:
+
+- If "fixation": Use an ANALOGY PROMPT — help them look past the surface. "What does X remind you of from what you've learned?"
+- If "encapsulation": Use a BRIDGING CONTEXT — give an intermediate, more familiar example that bridges between the biology topic and the scenario.
+- If "overgeneralization": Use CONSTRAINT REMOVAL — simplify the scenario to help them see where their mapping went wrong.
+- If "fragmentation": Use a STRUCTURE HINT — "Think about what's moving and why" or "What's the pattern here?"
+- If "inert_knowledge": Use EXPLICIT MAPPING — reference the student's own knowledge: "In biology, you learned about [concept]. What in this scenario works the same way?"
+
+CRITICAL RULES:
+1. Do NOT give away the answer.
+2. The hint should help the student DISCOVER the connection themselves.
+3. Keep language at a 6th-8th grade reading level.
+4. Be warm and encouraging.
+5. Each progressive scaffold should give slightly more direction than the last.
+
+Respond ONLY with valid JSON:
+{{
+  "scaffold_type": "analogy_prompt|structure_hint|constraint_removal|bridging_context|explicit_mapping",
+  "scaffold_text": "The hint text to show the student"
+}}
+"""
+
+
 # ─── API call helpers ─────────────────────────────────────────────────────────
 
-def _chat(system_prompt: str, user_message: str) -> dict:
+def _chat(system_prompt: str, user_message: str, max_tokens: int = 1500) -> dict:
     """
     Send a chat completion request and parse the JSON response.
     Returns a dict on success, or a dict with an 'error' key on failure.
@@ -237,7 +391,7 @@ def _chat(system_prompt: str, user_message: str) -> dict:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_message},
             ],
-            max_completion_tokens=1500,
+            max_completion_tokens=max_tokens,
         )
         content = response.choices[0].message.content
         if not content:
@@ -351,3 +505,71 @@ def generate_session_summary(attempt) -> dict:
         misconceptions=json.dumps(attempt.identified_misconceptions),
     )
     return _chat(system, "Generate the session summary.")
+
+
+# ─── Mode 3: Transfer Challenge functions ─────────────────────────────────────
+
+def generate_transfer_scenario(topic, transfer_level: int) -> dict:
+    """
+    Mode 3: generate a novel-context scenario at the given transfer level.
+    Returns dict with scenario_text, domain_context, target_concepts,
+    expected_mappings, and surface_distractors.
+    """
+    system = SYSTEM_TRANSFER_SCENARIO.format(
+        topic_name=topic.name,
+        standard=topic.standard,
+        expected_concepts=json.dumps(topic.expected_concepts),
+        level=transfer_level,
+    )
+    return _chat(
+        system,
+        f"Generate a Level {transfer_level} transfer scenario for the topic: {topic.name}",
+        max_tokens=2000,
+    )
+
+
+def diagnose_transfer(topic, scenario_data: dict, student_response: str,
+                       scaffolds_given: list = None) -> dict:
+    """
+    Mode 3: diagnose the quality of a student's transfer attempt.
+    Returns dict with transfer_outcome, concept_mappings_detected,
+    reasoning_chain, transfer_failure_type, transfer_failure_diagnosis,
+    overall_feedback, and transfer_score.
+    """
+    system = SYSTEM_TRANSFER_DIAGNOSIS.format(
+        topic_name=topic.name,
+        standard=topic.standard,
+        expected_concepts=json.dumps(topic.expected_concepts),
+        scenario_text=scenario_data.get("scenario_text", ""),
+        domain_context=scenario_data.get("domain_context", ""),
+        expected_mappings=json.dumps(scenario_data.get("expected_mappings", [])),
+        surface_distractors=json.dumps(scenario_data.get("surface_distractors", [])),
+        scaffolds_given=json.dumps(scaffolds_given or []),
+        student_response=student_response,
+    )
+    return _chat(
+        system,
+        f"Diagnose this student's transfer attempt.",
+        max_tokens=2000,
+    )
+
+
+def generate_transfer_scaffold(topic, scenario_data: dict, student_response: str,
+                                failure_type: str, failure_diagnosis: str,
+                                previous_scaffolds: list = None,
+                                scaffold_number: int = 1) -> dict:
+    """
+    Mode 3: generate a progressive scaffold hint for a struggling student.
+    Returns dict with scaffold_type and scaffold_text.
+    """
+    system = SYSTEM_TRANSFER_SCAFFOLD.format(
+        topic_name=topic.name,
+        standard=topic.standard,
+        scenario_text=scenario_data.get("scenario_text", ""),
+        student_response=student_response,
+        failure_type=failure_type,
+        failure_diagnosis=failure_diagnosis,
+        previous_scaffolds=json.dumps(previous_scaffolds or []),
+        scaffold_number=scaffold_number,
+    )
+    return _chat(system, "Generate a scaffold hint for this student.")

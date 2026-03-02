@@ -1,0 +1,170 @@
+{% extends "recall/base.html" %}
+{% block title %}Transfer Challenge – {{ attempt.topic.name }}{% endblock %}
+
+{% block content %}
+<div class="session-header">
+    <div class="session-info">
+        <h1>🌉 Transfer Challenge</h1>
+        <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
+        <p class="session-meta">Hey {{ attempt.student_name }}! &bull; Level {{ current_level }} of {{ total_levels }} &bull; <span class="streak-indicator">🧩 Can you connect the dots?</span></p>
+    </div>
+    <div class="session-progress">
+        <div class="transfer-level-indicator">
+            <span class="level-dot {% if current_level >= 1 %}{% if current_level > 1 %}completed{% else %}active{% endif %}{% endif %}">1</span>
+            <span class="level-connector {% if current_level > 1 %}completed{% endif %}"></span>
+            <span class="level-dot {% if current_level >= 2 %}{% if current_level > 2 %}completed{% else %}active{% endif %}{% endif %}">2</span>
+            <span class="level-connector {% if current_level > 2 %}completed{% endif %}"></span>
+            <span class="level-dot {% if current_level >= 3 %}{% if current_level > 3 %}completed{% else %}active{% endif %}{% endif %}">3</span>
+            <span class="level-connector {% if current_level > 3 %}completed{% endif %}"></span>
+            <span class="level-dot {% if current_level >= 4 %}active{% endif %}">4</span>
+        </div>
+        <form method="post" action="{% url 'recall:opt_out' attempt_id=attempt.pk %}" class="opt-out-form">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline btn-sm">I'm Done 👋</button>
+        </form>
+    </div>
+</div>
+
+{% if level_passed %}
+<div class="encouragement-banner transfer-level-banner">
+    🎉 Level {{ current_level|add:"-1" }} Complete! You successfully transferred your knowledge. Ready for the next challenge?
+</div>
+{% endif %}
+
+{% if transfer_result and not level_passed %}
+<div class="feedback-card transfer-feedback">
+    <h3>
+        {% if transfer_result.transfer_outcome == 'creative' %}🌟 Incredible Transfer!
+        {% elif transfer_result.transfer_outcome == 'structural' %}🎯 Strong Transfer!
+        {% elif transfer_result.transfer_outcome == 'partial' %}🔄 Getting There!
+        {% elif transfer_result.transfer_outcome == 'surface' %}🔍 Surface Level — Let's Go Deeper
+        {% else %}🧱 The Knowledge Is There — Let's Unlock It
+        {% endif %}
+    </h3>
+
+    {% if transfer_result.overall_feedback %}
+    <p class="feedback-text">{{ transfer_result.overall_feedback }}</p>
+    {% elif transfer_result.transfer_failure_diagnosis %}
+    <p class="feedback-text">{{ transfer_result.transfer_failure_diagnosis }}</p>
+    {% endif %}
+
+    {% if transfer_result.concept_mappings_detected %}
+    <div class="feedback-section correct">
+        <h4>🗺️ Connections You Made</h4>
+        <div class="mapping-visualization">
+            {% for mapping in transfer_result.concept_mappings_detected %}
+            <div class="mapping-arrow">
+                <span class="mapping-source">{{ mapping.source_concept }}</span>
+                <span class="mapping-connector">→</span>
+                <span class="mapping-target">{{ mapping.target_element }}</span>
+                {% if mapping.quality == 'structural' or mapping.quality == 'creative' %}
+                <span class="tag tag-success">✓ Deep</span>
+                {% elif mapping.quality == 'surface' %}
+                <span class="tag tag-warning">~ Surface</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if transfer_result.concept_mappings_missed %}
+    <div class="feedback-section missing">
+        <p>🔗 There {% if transfer_result.concept_mappings_missed|length == 1 %}is{% else %}are{% endif %} still <strong>{{ transfer_result.concept_mappings_missed|length }}</strong> connection{{ transfer_result.concept_mappings_missed|length|pluralize }} hiding in this scenario — keep looking!</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="interaction-card transfer-card">
+    {% if scaffold %}
+    <div class="scaffold-hint">
+        <h3>
+            {% if scaffold.scaffold_type == 'analogy_prompt' %}💭 Think About It This Way...
+            {% elif scaffold.scaffold_type == 'bridging_context' %}🌉 Here's a Bridge...
+            {% elif scaffold.scaffold_type == 'structure_hint' %}🔬 Focus On the Structure...
+            {% elif scaffold.scaffold_type == 'constraint_removal' %}🎯 Let's Simplify...
+            {% elif scaffold.scaffold_type == 'explicit_mapping' %}🧠 Remember What You Learned...
+            {% else %}💡 Hint
+            {% endif %}
+        </h3>
+        <p>{{ scaffold.scaffold_text }}</p>
+    </div>
+    {% endif %}
+
+    <div class="scenario-prompt">
+        <div class="scenario-domain-badge">🌍 {{ scenario.domain_context|title }}</div>
+        <h2>{{ scenario.scenario_text }}</h2>
+    </div>
+
+    <p class="prompt-hint">
+        💡 This isn't about {{ attempt.topic.name }} vocabulary — it's about using
+        the <em>principles</em> you learned in a totally new situation. Think structurally!
+    </p>
+
+    <form method="post" action="{% url 'recall:transfer_submit' attempt_id=attempt.pk %}" id="transfer-form">
+        {% csrf_token %}
+        <textarea name="response" class="form-textarea" rows="6"
+                  placeholder="How would you approach this? What principles from what you've learned might apply here? 🧩"
+                  required autofocus></textarea>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+                {% if scaffold %}Try Again With the Hint 🌉{% else %}Submit My Reasoning 🧠{% endif %}
+            </button>
+        </div>
+    </form>
+
+    {% if not is_first_attempt %}
+    <form method="post" action="{% url 'recall:transfer_scaffold' attempt_id=attempt.pk %}" class="scaffold-request-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline btn-scaffold">I'm Stuck — Give Me a Hint 🆘</button>
+    </form>
+    {% endif %}
+
+    <div class="thinking-overlay" id="thinking-overlay">
+        <div class="thinking-bubble">
+            <div class="thinking-dots">
+                <span></span><span></span><span></span>
+            </div>
+            <span class="thinking-text">🌉 Analyzing your transfer reasoning...</span>
+        </div>
+    </div>
+</div>
+
+{% if previous_transfer_attempts and previous_transfer_attempts.count > 1 %}
+<details class="conversation-history">
+    <summary>🗺️ Your Attempts at This Level ({{ previous_transfer_attempts.count }})</summary>
+    <div class="history-list">
+        {% for ta in previous_transfer_attempts %}
+        <div class="history-item">
+            <div class="history-prompt"><strong>Attempt {{ forloop.counter }}:</strong></div>
+            <div class="history-response">{{ ta.student_response }}</div>
+            <div class="transfer-outcome-tags">
+                <span class="tag {% if ta.transfer_outcome == 'structural' or ta.transfer_outcome == 'creative' %}tag-success{% elif ta.transfer_outcome == 'partial' %}tag-warning{% else %}tag-danger{% endif %}">
+                    {% if ta.transfer_outcome == 'creative' %}🌟 Creative Transfer
+                    {% elif ta.transfer_outcome == 'structural' %}🎯 Structural Transfer
+                    {% elif ta.transfer_outcome == 'partial' %}🔄 Partial Transfer
+                    {% elif ta.transfer_outcome == 'surface' %}🔍 Surface Transfer
+                    {% else %}🧱 No Transfer
+                    {% endif %}
+                </span>
+                {% if ta.scaffold_count > 0 %}
+                <span class="tag tag-info">{{ ta.scaffold_count }} hint{{ ta.scaffold_count|pluralize }} used</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</details>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('transfer-form').addEventListener('submit', function() {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'Analyzing... 🌉';
+    document.getElementById('thinking-overlay').classList.add('active');
+});
+</script>
+{% endblock %}

@@ -1338,3 +1338,267 @@ body::before {
     border-radius: 2px;
     animation: confetti-fall 3s ease-out forwards;
 }
+
+/* ── Mode 3: Transfer Challenge ──────────────────────── */
+
+/* 3-column mode cards on home page */
+.mode-cards-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.mode-tag-transfer {
+    background: linear-gradient(135deg, #00b894, #55efc4);
+}
+
+/* Transfer level indicator (dots + connectors) */
+.transfer-level-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 0.5rem;
+}
+
+.level-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: var(--gray-200);
+    color: var(--gray-500);
+    font-size: 0.8rem;
+    font-weight: 800;
+    transition: all var(--transition);
+    position: relative;
+    z-index: 1;
+}
+
+.level-dot.active {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    box-shadow: 0 0 12px rgba(108, 92, 231, 0.4);
+    animation: gentle-float 2s ease-in-out infinite;
+}
+
+.level-dot.completed {
+    background: var(--success);
+    color: white;
+    box-shadow: 0 0 8px rgba(0, 184, 148, 0.3);
+}
+
+.level-connector {
+    width: 24px;
+    height: 3px;
+    background: var(--gray-200);
+    transition: background var(--transition);
+}
+
+.level-connector.completed {
+    background: var(--success);
+}
+
+/* Transfer level banner */
+.transfer-level-banner {
+    background: linear-gradient(135deg, #00b894, #55efc4) !important;
+    color: white;
+}
+
+/* Scenario prompt */
+.scenario-prompt {
+    margin-bottom: 1.25rem;
+}
+
+.scenario-domain-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #00b894, #55efc4);
+    color: white;
+    padding: 0.25rem 0.85rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.02em;
+}
+
+.scenario-prompt h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.7;
+    color: var(--gray-700);
+    background: linear-gradient(135deg, rgba(0, 184, 148, 0.06), rgba(85, 239, 196, 0.04));
+    padding: 1.25rem;
+    border-radius: var(--radius-sm);
+    border-left: 4px solid #00b894;
+}
+
+/* Scaffold hint card */
+.scaffold-hint {
+    background: linear-gradient(135deg, #fef9e7, #fdebd0);
+    border: 1px solid rgba(253, 203, 110, 0.4);
+    border-left: 4px solid var(--warning);
+    border-radius: var(--radius-sm);
+    padding: 1.15rem 1.25rem;
+    margin-bottom: 1.25rem;
+    animation: slide-in 0.4s ease-out;
+}
+
+.scaffold-hint h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    font-weight: 800;
+    color: #b88614;
+}
+
+.scaffold-hint p {
+    color: var(--gray-700);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.7;
+}
+
+/* Scaffold request button */
+.scaffold-request-form {
+    margin-top: 0.75rem;
+    text-align: center;
+}
+
+.btn-scaffold {
+    width: 100%;
+    border-style: dashed;
+    color: var(--warning-dark);
+    border-color: var(--warning);
+}
+
+.btn-scaffold:hover {
+    background: var(--warning-light);
+    border-color: var(--warning-dark);
+    color: var(--warning-dark);
+}
+
+/* Concept mapping visualization */
+.mapping-visualization {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.mapping-arrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.mapping-arrow:last-child {
+    border-bottom: none;
+}
+
+.mapping-source {
+    background: linear-gradient(135deg, var(--primary-glow), rgba(108, 92, 231, 0.08));
+    color: var(--primary-dark);
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.mapping-connector {
+    color: var(--gray-300);
+    font-size: 1.2rem;
+    font-weight: 900;
+}
+
+.mapping-target {
+    background: linear-gradient(135deg, rgba(0, 184, 148, 0.08), rgba(85, 239, 196, 0.06));
+    color: var(--success-dark);
+    padding: 0.3rem 0.7rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+/* Transfer feedback card */
+.transfer-feedback {
+    border-left-color: #00b894;
+}
+
+/* Transfer outcome tags */
+.transfer-outcome-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.tag-danger {
+    background: var(--danger-light);
+    color: #c0392b;
+    border: 1px solid rgba(225, 112, 85, 0.2);
+}
+
+.tag-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid rgba(116, 185, 255, 0.3);
+}
+
+/* Transfer-specific summary section */
+.transfer-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.transfer-stat-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(108, 92, 231, 0.05);
+}
+
+.transfer-stat-number {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #00b894, #55efc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.transfer-stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    font-weight: 700;
+    margin-top: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* ── Responsive updates for 3-column mode cards ──────── */
+@media (max-width: 900px) {
+    .mode-cards-3 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .mode-cards-3 {
+        grid-template-columns: 1fr;
+    }
+
+    .transfer-level-indicator {
+        margin-bottom: 0.75rem;
+    }
+
+    .transfer-stats {
+        grid-template-columns: 1fr;
+    }
+}

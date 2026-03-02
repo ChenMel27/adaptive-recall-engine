@@ -37,9 +37,30 @@
     {% else %}
 
     {% if attempt.status == 'mastery' %}
-    <div class="encouragement-banner">🏆 You reached mastery! Your brain is on fire! 🔥</div>
+    <div class="encouragement-banner">
+        {% if attempt.mode == 'transfer' %}🌉 You completed all transfer levels! You can apply your knowledge anywhere! 🌟
+        {% else %}🏆 You reached mastery! Your brain is on fire! 🔥
+        {% endif %}
+    </div>
     {% elif attempt.status == 'max_turns' %}
     <div class="encouragement-banner" style="background: linear-gradient(135deg, #00b894, #55efc4);">💪 You completed all rounds! Every answer made you stronger!</div>
+    {% endif %}
+
+    {% if attempt.mode == 'transfer' %}
+    <div class="transfer-stats">
+        <div class="transfer-stat-card">
+            <span class="transfer-stat-number">{{ attempt.current_transfer_level|add:"-1" }}</span>
+            <span class="transfer-stat-label">Levels Completed</span>
+        </div>
+        <div class="transfer-stat-card">
+            <span class="transfer-stat-number">{{ attempt.turn_count }}</span>
+            <span class="transfer-stat-label">Total Attempts</span>
+        </div>
+        <div class="transfer-stat-card">
+            <span class="transfer-stat-number">{{ attempt.correct_followups }}</span>
+            <span class="transfer-stat-label">Successful Transfers</span>
+        </div>
+    </div>
     {% endif %}
 
     <div class="summary-card">

@@ -8,13 +8,16 @@ graph TB
         Client["_get_client()<br/><i>OpenAI client singleton</i>"]
         Chat["_chat(system, user)<br/><i>Core wrapper → JSON dict</i>"]
 
-        subgraph "6 Public Functions"
+        subgraph "9 Public Functions"
             F1["analyze_brain_dump()"]
             F2["analyze_followup()"]
             F3["extract_notes_concepts()"]
             F4["generate_quiz_questions()"]
             F5["evaluate_quiz_answer()"]
             F6["generate_session_summary()"]
+            F7["generate_transfer_scenario()"]
+            F8["diagnose_transfer()"]
+            F9["generate_transfer_scaffold()"]
         end
     end
 
@@ -24,6 +27,9 @@ graph TB
     F4 --> Chat
     F5 --> Chat
     F6 --> Chat
+    F7 --> Chat
+    F8 --> Chat
+    F9 --> Chat
     Chat --> Client
     Client -->|"gpt-5-mini<br/>max_completion_tokens=1500<br/>response_format=json"| API["☁️ OpenAI API"]
 
@@ -66,7 +72,13 @@ graph LR
         NQ3["evaluate_quiz_answer()"] -->|"Each answer"| R5["Answer evaluation"]
     end
 
-    subgraph "Both Modes"
+    subgraph "Mode 3: Transfer Challenge"
+        TC1["generate_transfer_scenario()"] -->|"Each level"| R7["Scenario generation"]
+        TC2["diagnose_transfer()"] -->|"Each attempt"| R8["Transfer diagnosis"]
+        TC3["generate_transfer_scaffold()"] -->|"When stuck"| R9["Scaffold hint"]
+    end
+
+    subgraph "All Modes"
         SUM["generate_session_summary()"] -->|"Session end"| R6["Summary + reflection"]
     end
 
@@ -75,6 +87,9 @@ graph LR
     style NQ1 fill:#fd79a8,color:#fff
     style NQ2 fill:#fd79a8,color:#fff
     style NQ3 fill:#fd79a8,color:#fff
+    style TC1 fill:#00b894,color:#fff
+    style TC2 fill:#00b894,color:#fff
+    style TC3 fill:#00b894,color:#fff
     style SUM fill:#00b894,color:#fff
 ```
 

@@ -21,6 +21,12 @@ graph TD
         R8["POST /quiz/:id/submit/<br/>quiz_submit()"]
     end
 
+    subgraph "Mode 3: Transfer Challenge"
+        R12["GET /transfer/:id/<br/>transfer_challenge()"]
+        R13["POST /transfer/:id/submit/<br/>transfer_submit()"]
+        R14["POST /transfer/:id/scaffold/<br/>transfer_scaffold()"]
+    end
+
     subgraph "Session Controls"
         R9["POST /opt-out/:id/<br/>opt_out()"]
         R10["GET /summary/:id/<br/>summary()"]
@@ -33,6 +39,7 @@ graph TD
     R1 -->|"Choose mode"| R2
     R2 -->|"brain_dump mode"| R3
     R2 -->|"notes_quiz mode"| R5
+    R2 -->|"transfer mode"| R12
 
     R3 --> R4
     R4 -->|"Continue"| R3
@@ -44,8 +51,15 @@ graph TD
     R8 -->|"More Qs"| R7
     R8 -->|"Done"| R10
 
+    R12 --> R13
+    R13 -->|"Next level"| R12
+    R13 -->|"Done"| R10
+    R12 --> R14
+    R14 -->|"Hint given"| R12
+
     R3 -.->|"Opt out"| R9
     R7 -.->|"Opt out"| R9
+    R12 -.->|"Opt out"| R9
     R9 --> R10
 
     R10 -->|"New session"| R1
@@ -67,6 +81,7 @@ graph LR
         V4["quiz()"]
         V5["summary()"]
         V6["dashboard()"]
+        V7["transfer_challenge()"]
     end
 
     subgraph Templates["templates/recall/"]
@@ -77,6 +92,7 @@ graph LR
         T4["quiz.html"]
         T5["summary.html"]
         T6["dashboard.html"]
+        T7["transfer_challenge.html"]
     end
 
     V1 --> T1
@@ -85,6 +101,7 @@ graph LR
     V4 --> T4
     V5 --> T5
     V6 --> T6
+    V7 --> T7
 
     T1 -->|extends| T0
     T2 -->|extends| T0
@@ -92,6 +109,7 @@ graph LR
     T4 -->|extends| T0
     T5 -->|extends| T0
     T6 -->|extends| T0
+    T7 -->|extends| T0
 ```
 
 ## HTTP Method Summary
@@ -106,6 +124,9 @@ graph LR
 | `/notes/<id>/submit/` | POST | `notes_upload_submit()` | Upload PDF, extract, gen quiz |
 | `/quiz/<id>/` | GET | `quiz()` | Show current quiz question |
 | `/quiz/<id>/submit/` | POST | `quiz_submit()` | Evaluate answer |
+| `/transfer/<id>/` | GET | `transfer_challenge()` | Show transfer scenario |
+| `/transfer/<id>/submit/` | POST | `transfer_submit()` | Process transfer response |
+| `/transfer/<id>/scaffold/` | POST | `transfer_scaffold()` | Provide scaffold hint |
 | `/opt-out/<id>/` | POST | `opt_out()` | End session early |
 | `/summary/<id>/` | GET | `summary()` | Generate & show summary |
 | `/dashboard/` | GET | `dashboard()` | Teacher overview |

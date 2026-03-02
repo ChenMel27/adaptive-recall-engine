@@ -26,7 +26,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-from .models import Topic, Attempt, Turn, NoteUpload
+from .models import (
+    Topic, Attempt, Turn, NoteUpload,
+    TransferScenario, TransferAttempt, TransferScaffold,
+)
 from .forms import (
     StudentNameForm,
     TopicSelectForm,
@@ -57,7 +60,7 @@ def start_session(request):
     topic_id = request.POST.get("topic")
     mode = request.POST.get("mode")  # 'brain_dump' or 'notes_quiz'
 
-    if not topic_id or mode not in ("brain_dump", "notes_quiz"):
+    if not topic_id or mode not in ("brain_dump", "notes_quiz", "transfer"):
         return redirect("recall:home")
 
     topic = get_object_or_404(Topic, pk=topic_id)
@@ -72,8 +75,10 @@ def start_session(request):
 
     if mode == "brain_dump":
         return redirect("recall:brain_dump", attempt_id=attempt.pk)
-    else:
+    elif mode == "notes_quiz":
         return redirect("recall:notes_upload", attempt_id=attempt.pk)
+    else:
+        return redirect("recall:transfer_challenge", attempt_id=attempt.pk)
 
 
 # ─── Mode 1: Brain Dump ──────────────────────────────────────────────────────
@@ -473,3 +478,269 @@ def dashboard(request):
         "mastery_count": Attempt.objects.filter(status="mastery").count(),
     }
     return render(request, "recall/dashboard.html", context)
+
+
+# ─── Mode 3: Transfer Challenge ──────────────────────────────────────────────
+
+MAX_ATTEMPTS_PER_LEVEL = 3  # Auto-advance after this many failed attempts
+
+
+def transfer_challenge(request, attempt_id):
+    """Show the transfer challenge page for the current level."""
+    attempt = get_object_or_404(Attempt, pk=attempt_id, mode="transfer")
+
+    if attempt.status != "active":
+        return redirect("recall:summary", attempt_id=attempt.pk)
+
+    current_level = attempt.current_transfer_level
+
+    # If we've passed level 4, session is complete
+    if current_level > 4:
+        attempt.status = "mastery"
+        attempt.save()
+        return redirect("recall:summary", attempt_id=attempt.pk)
+
+    # Get or generate a scenario for this level
+    scenario = TransferScenario.objects.filter(
+        topic=attempt.topic,
+        transfer_level=current_level,
+    ).first()
+
+    if not scenario:
+        # Generate a new scenario via AI
+        result = ai_service.generate_transfer_scenario(attempt.topic, current_level)
+
+        if "error" in result:
+            logger.error("Failed to generate transfer scenario: %s", result["error"])
+            # Provide a fallback scenario
+            result = {
+                "scenario_text": (
+                    f"Think of a situation outside of biology class where the ideas "
+                    f"from {attempt.topic.name} might apply. Describe the situation "
+                    f"and explain how the concepts connect."
+                ),
+                "domain_context": "real world",
+                "target_concepts": attempt.topic.expected_concepts[:3],
+                "expected_mappings": [],
+                "surface_distractors": [],
+            }
+
+        scenario = TransferScenario.objects.create(
+            topic=attempt.topic,
+            transfer_level=current_level,
+            scenario_text=result.get("scenario_text", ""),
+            domain_context=result.get("domain_context", "unknown"),
+            target_concepts=result.get("target_concepts", []),
+            expected_mappings=result.get("expected_mappings", []),
+            surface_distractors=result.get("surface_distractors", []),
+            is_ai_generated=True,
+        )
+
+    # Get previous transfer attempts at this level for this session
+    previous_attempts = TransferAttempt.objects.filter(
+        attempt=attempt,
+        scenario=scenario,
+    )
+
+    last_transfer = previous_attempts.last()
+    last_scaffold = None
+    if last_transfer:
+        last_scaffold = last_transfer.scaffolds.last()
+
+    # Check if we've hit the level-complete condition
+    level_passed = last_transfer and last_transfer.transfer_outcome in ("structural", "creative")
+
+    context = {
+        "attempt": attempt,
+        "scenario": scenario,
+        "transfer_result": last_transfer,
+        "scaffold": last_scaffold,
+        "previous_transfer_attempts": previous_attempts,
+        "is_first_attempt": not previous_attempts.exists(),
+        "level_passed": level_passed,
+        "current_level": current_level,
+        "total_levels": 4,
+    }
+    return render(request, "recall/transfer_challenge.html", context)
+
+
+@require_POST
+def transfer_submit(request, attempt_id):
+    """Process a student's transfer challenge response."""
+    attempt = get_object_or_404(Attempt, pk=attempt_id, mode="transfer")
+
+    if attempt.status != "active":
+        return redirect("recall:summary", attempt_id=attempt.pk)
+
+    student_response = request.POST.get("response", "").strip()
+    if not student_response:
+        return redirect("recall:transfer_challenge", attempt_id=attempt.pk)
+
+    current_level = attempt.current_transfer_level
+
+    scenario = get_object_or_404(
+        TransferScenario,
+        topic=attempt.topic,
+        transfer_level=current_level,
+    )
+
+    # Gather any scaffolds given so far
+    previous_attempts = TransferAttempt.objects.filter(
+        attempt=attempt, scenario=scenario
+    )
+    scaffolds_given = []
+    for ta in previous_attempts:
+        for s in ta.scaffolds.all():
+            scaffolds_given.append({"type": s.scaffold_type, "text": s.scaffold_text})
+
+    # Get scenario data for AI
+    scenario_data = {
+        "scenario_text": scenario.scenario_text,
+        "domain_context": scenario.domain_context,
+        "expected_mappings": scenario.expected_mappings,
+        "surface_distractors": scenario.surface_distractors,
+    }
+
+    # AI diagnosis
+    diagnosis = ai_service.diagnose_transfer(
+        topic=attempt.topic,
+        scenario_data=scenario_data,
+        student_response=student_response,
+        scaffolds_given=scaffolds_given,
+    )
+
+    if "error" in diagnosis:
+        logger.error("AI transfer diagnosis error: %s", diagnosis["error"])
+        diagnosis = {
+            "transfer_outcome": "partial",
+            "concept_mappings_detected": [],
+            "concept_mappings_missed": [],
+            "reasoning_chain": [],
+            "transfer_failure_type": "none",
+            "transfer_failure_diagnosis": "",
+            "overall_feedback": "I had a little trouble analyzing your response, but keep going! Try adding more detail about HOW the ideas connect.",
+            "transfer_score": 0.3,
+        }
+
+    # Create the transfer attempt record
+    transfer_attempt = TransferAttempt.objects.create(
+        attempt=attempt,
+        scenario=scenario,
+        student_response=student_response,
+        transfer_outcome=diagnosis.get("transfer_outcome", "no_transfer"),
+        concept_mappings_detected=diagnosis.get("concept_mappings_detected", []),
+        reasoning_chain=diagnosis.get("reasoning_chain", []),
+        transfer_failure_type=diagnosis.get("transfer_failure_type", "none"),
+        transfer_failure_diagnosis=diagnosis.get("transfer_failure_diagnosis", ""),
+        transfer_score=diagnosis.get("transfer_score", 0.0),
+        scaffold_count=len(scaffolds_given),
+    )
+
+    # Update attempt turn count
+    attempt.turn_count += 1
+
+    # If successful transfer, advance to next level
+    outcome = diagnosis.get("transfer_outcome", "no_transfer")
+    if outcome in ("structural", "creative"):
+        attempt.current_transfer_level += 1
+        attempt.correct_followups += 1
+
+        # Track demonstrated concepts from this transfer
+        detected = diagnosis.get("concept_mappings_detected", [])
+        demonstrated = list(attempt.demonstrated_concepts)
+        for mapping in detected:
+            concept = mapping.get("source_concept", "")
+            if concept and concept not in demonstrated:
+                demonstrated.append(concept)
+        attempt.demonstrated_concepts = demonstrated
+
+        # If we've completed all 4 levels, mark as mastery
+        if attempt.current_transfer_level > 4:
+            attempt.status = "mastery"
+
+    else:
+        # Check if we've hit max attempts for this level
+        level_attempts = previous_attempts.count() + 1  # +1 for current
+        if level_attempts >= MAX_ATTEMPTS_PER_LEVEL:
+            # Auto-advance to next level
+            attempt.current_transfer_level += 1
+            if attempt.current_transfer_level > 4:
+                attempt.status = "max_turns"
+
+    attempt.save()
+
+    if attempt.status != "active":
+        return redirect("recall:summary", attempt_id=attempt.pk)
+
+    return redirect("recall:transfer_challenge", attempt_id=attempt.pk)
+
+
+@require_POST
+def transfer_scaffold(request, attempt_id):
+    """Provide a progressive scaffold hint for a transfer challenge."""
+    attempt = get_object_or_404(Attempt, pk=attempt_id, mode="transfer")
+
+    if attempt.status != "active":
+        return redirect("recall:summary", attempt_id=attempt.pk)
+
+    current_level = attempt.current_transfer_level
+    scenario = get_object_or_404(
+        TransferScenario,
+        topic=attempt.topic,
+        transfer_level=current_level,
+    )
+
+    # Get the last transfer attempt
+    last_transfer = TransferAttempt.objects.filter(
+        attempt=attempt, scenario=scenario
+    ).last()
+
+    if not last_transfer:
+        return redirect("recall:transfer_challenge", attempt_id=attempt.pk)
+
+    # Gather previous scaffolds
+    existing_scaffolds = list(
+        last_transfer.scaffolds.values_list("scaffold_text", flat=True)
+    )
+    scaffold_number = last_transfer.scaffold_count + 1
+
+    scenario_data = {
+        "scenario_text": scenario.scenario_text,
+        "domain_context": scenario.domain_context,
+        "expected_mappings": scenario.expected_mappings,
+    }
+
+    # Generate scaffold via AI
+    scaffold_result = ai_service.generate_transfer_scaffold(
+        topic=attempt.topic,
+        scenario_data=scenario_data,
+        student_response=last_transfer.student_response,
+        failure_type=last_transfer.transfer_failure_type or "encapsulation",
+        failure_diagnosis=last_transfer.transfer_failure_diagnosis or "Student needs help connecting concepts",
+        previous_scaffolds=existing_scaffolds,
+        scaffold_number=scaffold_number,
+    )
+
+    if "error" in scaffold_result:
+        logger.error("AI scaffold error: %s", scaffold_result["error"])
+        scaffold_result = {
+            "scaffold_type": "structure_hint",
+            "scaffold_text": (
+                f"Think about the key ideas from {attempt.topic.name}. "
+                f"What patterns or principles did you learn? "
+                f"Now look at this scenario again — can you spot where those same patterns show up?"
+            ),
+        }
+
+    # Save the scaffold
+    TransferScaffold.objects.create(
+        transfer_attempt=last_transfer,
+        scaffold_type=scaffold_result.get("scaffold_type", "structure_hint"),
+        scaffold_text=scaffold_result.get("scaffold_text", ""),
+        order=scaffold_number,
+    )
+
+    last_transfer.scaffold_count = scaffold_number
+    last_transfer.save()
+
+    return redirect("recall:transfer_challenge", attempt_id=attempt.pk)

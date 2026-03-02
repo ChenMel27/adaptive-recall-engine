@@ -6,8 +6,12 @@
 erDiagram
     Topic ||--o{ ConceptTag : "has many"
     Topic ||--o{ Attempt : "has many"
+    Topic ||--o{ TransferScenario : "has many"
     Attempt ||--o{ Turn : "has many"
     Attempt ||--o| NoteUpload : "has one (Mode 2)"
+    Attempt ||--o{ TransferAttempt : "has many (Mode 3)"
+    TransferScenario ||--o{ TransferAttempt : "has many"
+    TransferAttempt ||--o{ TransferScaffold : "has many"
 
     Topic {
         int id PK
@@ -30,10 +34,11 @@ erDiagram
         int id PK
         string student_name
         int topic_id FK
-        string mode "brain_dump | notes_quiz"
+        string mode "brain_dump | notes_quiz | transfer"
         string status "active | mastery | max_turns | opted_out"
         int turn_count
         int correct_followups
+        int current_transfer_level "1-4 for Mode 3"
         json missing_concepts "list of strings"
         json identified_misconceptions "list of strings"
         json demonstrated_concepts "list of strings"
@@ -59,6 +64,44 @@ erDiagram
         text extracted_text
         json extracted_concepts "list of strings"
         datetime uploaded_at
+    }
+
+    TransferScenario {
+        int id PK
+        int topic_id FK
+        int transfer_level "1=Near 2=Moderate 3=Far 4=Creative"
+        text scenario_text
+        string domain_context "e.g. cooking, engineering"
+        json target_concepts "list of strings"
+        json expected_mappings "list of mapping objects"
+        json surface_distractors "list of strings"
+        bool is_ai_generated
+        datetime created_at
+    }
+
+    TransferAttempt {
+        int id PK
+        int attempt_id FK
+        int scenario_id FK
+        text student_response
+        string transfer_outcome "no_transfer|surface|partial|structural|creative"
+        json concept_mappings_detected "list of mapping objects"
+        json reasoning_chain "list of strings"
+        string transfer_failure_type "none|fixation|encapsulation|..."
+        text transfer_failure_diagnosis
+        float transfer_score "0.0 to 1.0"
+        int scaffold_count
+        datetime submitted_at
+    }
+
+    TransferScaffold {
+        int id PK
+        int transfer_attempt_id FK
+        string scaffold_type "analogy_prompt|structure_hint|..."
+        text scaffold_text
+        int order
+        text student_response_after
+        bool helped "nullable"
     }
 ```
 

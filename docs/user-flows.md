@@ -10,6 +10,7 @@ flowchart TD
 
     Mode -->|Brain Dump| BD["🧠 Brain Dump Page"]
     Mode -->|Notes Quiz| NU["📄 Notes Upload Page"]
+    Mode -->|Transfer| TC["🌉 Transfer Challenge"]
 
     %% ── Mode 1: Brain Dump ──
     BD --> Dump["Student writes<br/>everything they remember"]
@@ -41,12 +42,31 @@ flowchart TD
     NextQ --> Answer
     CheckQ -->|No| Summary
 
+    %% ── Mode 3: Transfer Challenge ──
+    TC --> GenScenario["🤖 AI generates novel<br/>scenario at Level 1"]
+    GenScenario --> ShowScenario["Show scenario +<br/>prompt student"]
+    ShowScenario --> SubmitTC["Student writes<br/>transfer response"]
+    SubmitTC --> DiagnoseTC["🤖 AI diagnoses<br/>transfer quality"]
+    DiagnoseTC --> UpdateTC["Update Attempt state"]
+    UpdateTC --> CheckTC{"Transfer<br/>successful?"}
+
+    CheckTC -->|"structural/creative"| NextLevel{"More<br/>levels?"}
+    NextLevel -->|Yes| GenScenario2["🤖 AI generates<br/>next level scenario"]
+    GenScenario2 --> ShowScenario
+    NextLevel -->|"Level 4 done"| Summary
+
+    CheckTC -->|No| ShowFeedback["Show feedback +<br/>mappings + hint option"]
+    ShowFeedback -->|"Try again"| SubmitTC
+    ShowFeedback -->|"Request hint"| Scaffold["🤖 AI generates<br/>scaffold hint"]
+    Scaffold --> ShowScenario
+
     %% ── Summary ──
     Summary(["📊 Summary Page"])
 
     %% ── Opt-out ──
     FollowUp -.->|"I'm Done 👋"| OptOut["Set status = opted_out"]
     Quiz -.->|"I'm Done 👋"| OptOut
+    ShowScenario -.->|"I'm Done 👋"| OptOut
     OptOut --> Summary
 
     style Summary fill:#6c5ce7,color:#fff,stroke:#6c5ce7
