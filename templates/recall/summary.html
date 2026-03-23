@@ -39,11 +39,11 @@
     {% if attempt.status == 'mastery' %}
     <div class="encouragement-banner">
         {% if attempt.mode == 'transfer' %}🌉 You completed all transfer levels! You can apply your knowledge anywhere! 🌟
-        {% else %}🏆 You reached mastery! Your brain is on fire! 🔥
+        {% else %}🏆 You showed strong understanding! Your reflection skills are growing! 🌱
         {% endif %}
     </div>
     {% elif attempt.status == 'max_turns' %}
-    <div class="encouragement-banner" style="background: linear-gradient(135deg, #00b894, #55efc4);">💪 You completed all rounds! Every answer made you stronger!</div>
+    <div class="encouragement-banner" style="background: linear-gradient(135deg, #00b894, #55efc4);">💪 You completed all rounds! Every explanation you wrote made your understanding stronger. Noticing what you don't know yet is a big part of learning!</div>
     {% endif %}
 
     {% if attempt.mode == 'transfer' %}
@@ -82,6 +82,18 @@
             {% endif %}
         </div>
 
+        {% if ai_summary.needed_a_nudge %}
+        <div class="summary-section nudge-section">
+            <h3>💡 Got It With a Nudge</h3>
+            <p class="nudge-explanation">You got these right after a follow-up question helped you think deeper. Nice work! Try recalling these on your own next time.</p>
+            <ul class="summary-list">
+                {% for concept in ai_summary.needed_a_nudge %}
+                <li>{{ concept }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
         <div class="summary-section review-section">
             <h3>📖 What to Review Next</h3>
             {% if ai_summary.what_to_review_next %}
@@ -100,6 +112,9 @@
     <div class="reflection-card">
         <h3>🤔 Something to Think About...</h3>
         <p class="reflection-prompt">{{ ai_summary.reflection_prompt }}</p>
+        {% if ai_summary.study_strategy_prompt %}
+        <p class="reflection-prompt" style="margin-top: 1rem;">{{ ai_summary.study_strategy_prompt }}</p>
+        {% endif %}
     </div>
     {% endif %}
 

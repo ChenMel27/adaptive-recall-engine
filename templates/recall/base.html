@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}BioRecall{% endblock %} | Adaptive Recall Engine</title>
+    <title>{% block title %}MetaBio{% endblock %} | Metacognitive Reflection for Biology</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="navbar" role="navigation" aria-label="Main navigation">
         <div class="container nav-container">
-            <a href="{% url 'recall:home' %}" class="nav-brand">
-                <span class="brand-icon">🧬</span> BioRecall
+            <a href="{% url 'recall:home' %}" class="nav-brand" aria-label="MetaBio Home">
+                <span class="brand-icon" aria-hidden="true">🧬</span> MetaBio
             </a>
             <div class="nav-links">
                 <a href="{% url 'recall:home' %}">🏠 Home</a>
@@ -22,7 +22,7 @@
         </div>
     </nav>
 
-    <main class="container">
+    <main class="container" role="main">
         {% if messages %}
         <div class="messages" style="padding-top: 1rem;">
             {% for message in messages %}
@@ -34,10 +34,10 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="footer">
+    <footer class="footer" role="contentinfo">
         <div class="container">
-            <p>🧬 BioRecall &mdash; Learn biology, one brain dump at a time!</p>
-            <p class="footer-sub">Aligned to Georgia Standards of Excellence &bull; Grades 6&ndash;8 Life Science</p>
+            <p>🧬 MetaBio &mdash; Reflect, discover, and grow your biology understanding!</p>
+            <p class="footer-sub">Aligned to Georgia Standards of Excellence &bull; Middle School Life Science</p>
         </div>
     </footer>
 

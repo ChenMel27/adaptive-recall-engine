@@ -1,21 +1,27 @@
 """
-Views for the Adaptive Recall Engine.
+Views for MetaBio — Metacognitive Reflection for Middle School Biology.
 
 Flow
 ----
-Home → Choose Mode → (Mode 1 or Mode 2) → Session Loop → Summary
+Home → Choose Mode → (Mode 1, 2, or 3) → Session Loop → Summary
 
-Mode 1 (Brain Dump):
-  1. Student picks a topic, types everything they remember.
-  2. AI analyses the dump → feedback + follow-up question.
+Mode 1 (Active Recall Reflection):
+  1. Student picks a topic, types everything they remember in their own words.
+  2. AI analyses the explanation → feedback + follow-up question.
   3. Loop: student answers follow-up → AI re-analyses → repeat.
   4. Ends on mastery / max turns / opt-out → summary page.
 
-Mode 2 (Notes Upload & Quiz):
+Mode 2 (Notes Upload & Low-Stakes Quiz):
   1. Student picks a topic, uploads PDF notes.
-  2. AI extracts concepts, generates quiz questions.
+  2. AI extracts concepts, generates conceptual questions.
   3. Student answers each question → immediate feedback.
   4. Ends after all questions answered → summary page.
+
+Mode 3 (Transfer Challenge):
+  1. Student picks a topic, receives a novel-context scenario.
+  2. AI diagnoses transfer quality, provides feedback.
+  3. Student progresses through 4 transfer levels with optional scaffolds.
+  4. Ends after all levels or max attempts → summary page.
 """
 
 import json
@@ -58,7 +64,7 @@ def start_session(request):
 
     student_name = request.POST.get("student_name", "Student").strip() or "Student"
     topic_id = request.POST.get("topic")
-    mode = request.POST.get("mode")  # 'brain_dump' or 'notes_quiz'
+    mode = request.POST.get("mode")  # 'brain_dump', 'notes_quiz', or 'transfer'
 
     if not topic_id or mode not in ("brain_dump", "notes_quiz", "transfer"):
         return redirect("recall:home")
@@ -178,6 +184,15 @@ def brain_dump_submit(request, attempt_id):
     attempt.turn_count = turn_number
     if is_correct is True:
         attempt.correct_followups += 1
+
+    # Track concepts that were only demonstrated after a probing follow-up
+    probe_credited = feedback.get("probe_credited_concepts", [])
+    if probe_credited:
+        existing_probed = attempt.probed_concepts or []
+        for concept in probe_credited:
+            if concept not in existing_probed:
+                existing_probed.append(concept)
+        attempt.probed_concepts = existing_probed
 
     # Check end conditions
     attempt.check_end_condition()
@@ -433,6 +448,7 @@ def summary(request, attempt_id):
     if attempt.turn_count == 0:
         ai_summary = {
             "what_you_know_well": [],
+            "needed_a_nudge": [],
             "what_to_review_next": [],
             "summary_text": "",
             "reflection_prompt": "",
@@ -443,6 +459,7 @@ def summary(request, attempt_id):
         if "error" in ai_summary:
             ai_summary = {
                 "what_you_know_well": attempt.demonstrated_concepts,
+                "needed_a_nudge": attempt.probed_concepts,
                 "what_to_review_next": attempt.missing_concepts,
                 "summary_text": "Great job working through this session! Review the concepts listed below to strengthen your understanding.",
                 "reflection_prompt": f"What was the most interesting thing you learned about {attempt.topic.name}?",

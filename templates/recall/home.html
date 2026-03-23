@@ -4,8 +4,8 @@
 {% block content %}
 <div class="hero">
     <span class="hero-mascot">🔬</span>
-    <h1>Hey there, scientist! 👋<br>Welcome to <span class="highlight">BioRecall</span></h1>
-    <p class="hero-sub">A chill, no-pressure way to test what you remember &mdash; and figure out what to study next. No grades, just growth!</p>
+    <h1>Hey there, scientist! 👋<br>Welcome to <span class="highlight">MetaBio</span></h1>
+    <p class="hero-sub">A low-pressure way to reflect on what you understand &mdash; and discover what to study next. No grades, no judgment, just learning!</p>
 </div>
 
 <form method="post" action="{% url 'recall:start_session' %}" class="start-form">
@@ -34,8 +34,8 @@
                 <input type="radio" name="mode" value="brain_dump" required>
                 <div class="mode-card-content">
                     <div class="mode-icon">🧠</div>
-                    <h3>Brain Dump</h3>
-                    <p>Dump everything you remember about a topic! Get instant feedback on what you nailed and what to review.</p>
+                    <h3>Active Recall Reflection</h3>
+                    <p>Explain everything you remember about a topic in your own words. Get feedback on what you understand and what to explore next.</p>
                     <span class="mode-tag">⚡ Active Recall</span>
                 </div>
             </label>
@@ -43,9 +43,9 @@
                 <input type="radio" name="mode" value="notes_quiz">
                 <div class="mode-card-content">
                     <div class="mode-icon">📄</div>
-                    <h3>Notes Quiz</h3>
-                    <p>Upload your class notes as a PDF and get quizzed on the key ideas. It's like having a study buddy!</p>
-                    <span class="mode-tag">📝 Notes Review</span>
+                    <h3>Notes Upload &amp; Quiz</h3>
+                    <p>Upload your class notes as a PDF and get low-stakes conceptual questions based on what's in them. It's like having a study buddy!</p>
+                    <span class="mode-tag">📝 Notes-Based Review</span>
                 </div>
             </label>
             <label class="mode-card">
@@ -73,18 +73,18 @@
         </div>
         <div class="step-card">
             <div class="step-number">2</div>
-            <h3>Show what you know</h3>
-            <p>Brain dump everything from memory, or upload your notes and we'll quiz you on the key stuff.</p>
+            <h3>Explain what you know</h3>
+            <p>Write out what you remember in your own words, or upload your class notes and answer conceptual questions.</p>
         </div>
         <div class="step-card">
             <div class="step-number">3</div>
-            <h3>Get instant feedback</h3>
-            <p>See what you totally nailed ✅ and where you might have gaps — zero judgment, zero grades!</p>
+            <h3>Discover your gaps</h3>
+            <p>See which ideas you understand well and which ones need more attention — no grades, no pressure!</p>
         </div>
         <div class="step-card">
             <div class="step-number">4</div>
-            <h3>Level up your knowledge</h3>
-            <p>Answer follow-up questions that target your specific gaps. Each answer gets you closer to mastery! 🏆</p>
+            <h3>Reflect &amp; grow</h3>
+            <p>Answer follow-up questions that help you think deeper. Each response builds your metacognitive awareness! 🧠</p>
         </div>
     </div>
 </section>

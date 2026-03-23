@@ -965,6 +965,17 @@ body::before {
     border-top: 4px solid var(--warning);
 }
 
+.nudge-section {
+    border-top: 4px solid #fdcb6e;
+}
+
+.nudge-explanation {
+    font-size: 0.85rem;
+    color: var(--gray-600, #636e72);
+    margin-bottom: 0.75rem;
+    font-style: italic;
+}
+
 .summary-list {
     list-style: none;
     padding: 0;
@@ -1601,4 +1612,42 @@ body::before {
     .transfer-stats {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── Accessibility: Screen-reader only ──────────────── */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ── Visual Support Card ──────────────────────────── */
+.visual-support-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.visual-support-img {
+    max-width: 100%;
+    max-height: 350px;
+    border-radius: var(--radius-sm);
+    object-fit: contain;
+}
+
+.visual-support-caption {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-top: 0.5rem;
+    font-style: italic;
 }

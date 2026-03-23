@@ -1,5 +1,5 @@
 """
-Data models for the Adaptive Recall Engine.
+Data models for MetaBio — Metacognitive Reflection for Middle School Biology.
 
 Models
 ------
@@ -37,6 +37,29 @@ class Topic(models.Model):
     common_misconceptions = models.JSONField(
         default=list,
         help_text="List of known misconceptions for this topic.",
+    )
+    expected_reasoning_patterns = models.JSONField(
+        default=list,
+        help_text="Types of relationships, mechanisms, or explanations students should demonstrate.",
+    )
+    supportive_followup_prompts = models.JSONField(
+        default=list,
+        help_text="Teacher-defined adaptive questions to push students toward deeper reasoning.",
+    )
+    concise_explanations = models.JSONField(
+        default=list,
+        help_text="Brief feedback statements that clarify misunderstandings in age-appropriate language.",
+    )
+    visual_support = models.ImageField(
+        upload_to="topic_visuals/",
+        blank=True,
+        null=True,
+        help_text="Relevant diagram, model, or image aligned with instructional content.",
+    )
+    visual_support_caption = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Caption describing the visual support image.",
     )
 
     class Meta:
@@ -82,7 +105,7 @@ class Attempt(models.Model):
     """One learning session by a student on a single topic."""
 
     MODE_CHOICES = [
-        ("brain_dump", "Mode 1 – Word Vomit / Brain Dump"),
+        ("brain_dump", "Mode 1 – Active Recall Reflection"),
         ("notes_quiz", "Mode 2 – Notes Upload & Quiz"),
         ("transfer", "Mode 3 – Transfer Challenge"),
     ]
@@ -118,6 +141,10 @@ class Attempt(models.Model):
     missing_concepts = models.JSONField(default=list)
     identified_misconceptions = models.JSONField(default=list)
     demonstrated_concepts = models.JSONField(default=list)
+    probed_concepts = models.JSONField(
+        default=list,
+        help_text="Concepts the student only demonstrated after a probing follow-up question (needed a nudge).",
+    )
 
     class Meta:
         ordering = ["-created_at"]
