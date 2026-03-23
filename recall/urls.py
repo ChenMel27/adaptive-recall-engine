@@ -20,6 +20,11 @@ urlpatterns = [
     path("quiz/<int:attempt_id>/", views.quiz, name="quiz"),
     path("quiz/<int:attempt_id>/submit/", views.quiz_submit, name="quiz_submit"),
 
+    # Mode 3: Transfer Challenge
+    path("transfer/<int:attempt_id>/", views.transfer_challenge, name="transfer_challenge"),
+    path("transfer/<int:attempt_id>/submit/", views.transfer_submit, name="transfer_submit"),
+    path("transfer/<int:attempt_id>/scaffold/", views.transfer_scaffold, name="transfer_scaffold"),
+
     # Session controls
     path("opt-out/<int:attempt_id>/", views.opt_out, name="opt_out"),
     path("summary/<int:attempt_id>/", views.summary, name="summary"),

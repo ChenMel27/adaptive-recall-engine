@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Celly the Cell - Default/Welcome state -->
+  <!-- Cell body -->
+  <ellipse cx="100" cy="105" rx="75" ry="70" fill="#a29bfe" opacity="0.25" />
+  <ellipse cx="100" cy="105" rx="70" ry="65" fill="#dfe6fd" stroke="#6c5ce7" stroke-width="3" />
+  <!-- Nucleus -->
+  <ellipse cx="100" cy="100" rx="28" ry="25" fill="#6c5ce7" opacity="0.2" />
+  <ellipse cx="100" cy="100" rx="25" ry="22" fill="#c4b5fd" stroke="#6c5ce7" stroke-width="2" />
+  <!-- Eyes -->
+  <ellipse cx="87" cy="92" rx="8" ry="9" fill="white" />
+  <ellipse cx="113" cy="92" rx="8" ry="9" fill="white" />
+  <circle cx="89" cy="93" r="4.5" fill="#1e1e3f" />
+  <circle cx="115" cy="93" r="4.5" fill="#1e1e3f" />
+  <circle cx="90.5" cy="91" r="1.8" fill="white" />
+  <circle cx="116.5" cy="91" r="1.8" fill="white" />
+  <!-- Friendly smile -->
+  <path d="M88 108 Q100 120 112 108" fill="none" stroke="#1e1e3f" stroke-width="2.5" stroke-linecap="round" />
+  <!-- Mitochondria decorations -->
+  <ellipse cx="55" cy="85" rx="12" ry="7" fill="#fd79a8" opacity="0.4" rx="12" transform="rotate(-20 55 85)" />
+  <ellipse cx="145" cy="120" rx="11" ry="6" fill="#fd79a8" opacity="0.4" transform="rotate(15 145 120)" />
+  <!-- Small organelle dots -->
+  <circle cx="70" cy="125" r="5" fill="#00b894" opacity="0.35" />
+  <circle cx="130" cy="80" r="4" fill="#fdcb6e" opacity="0.4" />
+  <circle cx="75" cy="95" r="3" fill="#74b9ff" opacity="0.35" />
+</svg>

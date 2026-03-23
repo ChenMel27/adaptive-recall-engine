@@ -4,24 +4,33 @@
 {% block content %}
 <div class="session-header">
     <div class="session-info">
-        <h1>🧠 Brain Dump</h1>
+        <h1>🧠 Active Recall Reflection</h1>
         <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
-        <p class="session-meta">Hi {{ attempt.student_name }}! &bull; Turn {{ attempt.turn_count|add:1 }} of {{ attempt.max_turns }}</p>
+        <p class="session-meta">Hey {{ attempt.student_name }}! &bull; Round {{ attempt.turn_count|add:1 }} of {{ attempt.max_turns }} &bull; <span class="streak-indicator">No grades — just reflection! 💭</span></p>
     </div>
     <div class="session-progress">
-        <div class="progress-bar">
+        <div class="progress-bar" role="progressbar" aria-valuenow="{{ attempt.turn_count }}" aria-valuemin="0" aria-valuemax="{{ attempt.max_turns }}" aria-label="Session progress">
             <div class="progress-fill" style="width: {% widthratio attempt.turn_count attempt.max_turns 100 %}%"></div>
         </div>
         <form method="post" action="{% url 'recall:opt_out' attempt_id=attempt.pk %}" class="opt-out-form">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline btn-sm">Stop Here</button>
+            <button type="submit" class="btn btn-outline btn-sm">I'm Done 👋</button>
         </form>
     </div>
 </div>
 
+{% if attempt.topic.visual_support %}
+<div class="visual-support-card" role="img" aria-label="{{ attempt.topic.visual_support_caption|default:'Diagram for this topic' }}">
+    <img src="{{ attempt.topic.visual_support.url }}" alt="{{ attempt.topic.visual_support_caption|default:'Diagram for this topic' }}" class="visual-support-img">
+    {% if attempt.topic.visual_support_caption %}
+    <p class="visual-support-caption">{{ attempt.topic.visual_support_caption }}</p>
+    {% endif %}
+</div>
+{% endif %}
+
 {% if last_feedback %}
 <div class="feedback-card">
-    <h3>📝 Feedback</h3>
+    <h3>💬 Here's what I noticed...</h3>
 
     {% if last_feedback.overall_feedback %}
     <p class="feedback-text">{{ last_feedback.overall_feedback }}</p>
@@ -29,11 +38,11 @@
 
     {% if last_feedback.misconceptions %}
     <div class="feedback-section misconceptions">
-        <h4>🔍 Let's Clarify</h4>
+        <h4>🔍 Let's Clear This Up</h4>
         {% for m in last_feedback.misconceptions %}
         <div class="misconception-item">
-            <p class="misconception-claim">You said: "{{ m.claim }}"</p>
-            <p class="misconception-correction">{{ m.correction }}</p>
+            <p class="misconception-claim">You wrote: "{{ m.claim }}"</p>
+            <p class="misconception-correction">💡 {{ m.correction }}</p>
         </div>
         {% endfor %}
     </div>
@@ -41,10 +50,10 @@
 
     {% if attempt.demonstrated_concepts %}
     <div class="feedback-section correct">
-        <h4>✅ Concepts You Demonstrated</h4>
+        <h4>🎯 Concepts You Nailed</h4>
         <div class="concept-tags">
             {% for concept in attempt.demonstrated_concepts %}
-            <span class="tag tag-success">{{ concept }}</span>
+            <span class="tag tag-success">✓ {{ concept }}</span>
             {% endfor %}
         </div>
     </div>
@@ -52,12 +61,7 @@
 
     {% if attempt.missing_concepts %}
     <div class="feedback-section missing">
-        <h4>📌 Still to Cover</h4>
-        <div class="concept-tags">
-            {% for concept in attempt.missing_concepts %}
-            <span class="tag tag-warning">{{ concept }}</span>
-            {% endfor %}
-        </div>
+        <p>📌 There are still <strong>{{ attempt.missing_concepts|length }}</strong> concepts to explore — the follow-up questions will help you get there!</p>
     </div>
     {% endif %}
 </div>
@@ -65,37 +69,46 @@
 
 <div class="interaction-card">
     {% if is_first_turn %}
-    <h2>Write everything you remember about: <em>{{ attempt.topic.name }}</em></h2>
-    <p class="prompt-hint">Don't worry about being perfect — just get your ideas out! This is not graded.</p>
+    <h2>Tell me everything you know about: <em>{{ attempt.topic.name }}</em></h2>
+    <p class="prompt-hint">💭 Don't stress about being perfect — just explain what you remember in your own words! This is NOT graded, and it's totally okay to be unsure about some things.</p>
     {% else %}
-    <h2>Follow-Up Question</h2>
+    <h2>🤔 Follow-Up Question</h2>
     <div class="follow-up-prompt">
         <p>{{ follow_up_question }}</p>
     </div>
     {% endif %}
 
-    <form method="post" action="{% url 'recall:brain_dump_submit' attempt_id=attempt.pk %}">
+    <form method="post" action="{% url 'recall:brain_dump_submit' attempt_id=attempt.pk %}" id="brain-dump-form">
         {% csrf_token %}
         <textarea name="response" class="form-textarea" rows="{% if is_first_turn %}8{% else %}5{% endif %}"
-                  placeholder="{% if is_first_turn %}Type everything you remember...{% else %}Type your answer here...{% endif %}"
-                  required autofocus></textarea>
+                  placeholder="{% if is_first_turn %}Start explaining what you remember... 💭{% else %}Type your answer here... 💡{% endif %}"
+                  required autofocus aria-label="{% if is_first_turn %}Write your explanation{% else %}Your answer{% endif %}"></textarea>
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Submit →</button>
+            <button type="submit" class="btn btn-primary" id="submit-btn">Send It! 🚀</button>
         </div>
     </form>
+
+    <div class="thinking-overlay" id="thinking-overlay">
+        <div class="thinking-bubble">
+            <div class="thinking-dots">
+                <span></span><span></span><span></span>
+            </div>
+            <span class="thinking-text">🧬 MetaBio is reading your explanation...</span>
+        </div>
+    </div>
 </div>
 
 {% if turns %}
 <details class="conversation-history">
-    <summary>View Conversation History ({{ turns.count }} turns)</summary>
+    <summary>📜 Your Conversation So Far ({{ turns.count }} rounds)</summary>
     <div class="history-list">
         {% for turn in turns %}
         <div class="history-item">
-            <div class="history-prompt"><strong>Turn {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
+            <div class="history-prompt"><strong>Round {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
             <div class="history-response">{{ turn.student_response }}</div>
             {% if turn.is_correct is not None %}
             <span class="tag {% if turn.is_correct %}tag-success{% else %}tag-warning{% endif %}">
-                {% if turn.is_correct %}✓ Correct{% else %}↻ Needs Review{% endif %}
+                {% if turn.is_correct %}🎯 Nailed It{% else %}🔄 Keep Exploring{% endif %}
             </span>
             {% endif %}
         </div>
@@ -103,4 +116,14 @@
     </div>
 </details>
 {% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('brain-dump-form').addEventListener('submit', function() {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('submit-btn').textContent = 'Analyzing... 🧬';
+    document.getElementById('thinking-overlay').classList.add('active');
+});
+</script>
 {% endblock %}

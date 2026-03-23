@@ -1,6 +1,7 @@
 """
 Management command to seed the database with Georgia Standards biology topics.
-Covers S7L1 through S7L5 with expected concepts and common misconceptions.
+Covers S7L1 through S7L5 with expected concepts, common misconceptions,
+expected reasoning patterns, supportive follow-up prompts, and concise explanations.
 
 Usage:
     python manage.py seed_topics
@@ -11,7 +12,7 @@ from recall.models import Topic, ConceptTag
 
 
 TOPICS = [
-    # ── S7L1: Diversity of Living Organisms ──────────────
+    # ── S7L2: Cells & Organelles ─────────────────────────
     {
         "name": "Cells & Organelles",
         "standard": "S7L2",
@@ -35,7 +36,26 @@ TOPICS = [
             "The cell wall and cell membrane are the same thing",
             "All cells look the same regardless of function",
         ],
+        "expected_reasoning_patterns": [
+            "Explain the relationship between an organelle's structure and its function",
+            "Compare and contrast plant and animal cells by explaining WHY they differ",
+            "Describe how multiple organelles work together to keep a cell alive",
+            "Explain the causal relationship between a cell lacking an organelle and what would happen",
+        ],
+        "supportive_followup_prompts": [
+            "If a cell couldn't control what enters and exits, what do you think would happen to it?",
+            "You mentioned some organelles — can you explain what job each one does inside the cell?",
+            "What makes a plant cell different from an animal cell, and why do those differences matter?",
+            "There are two big categories of cells based on whether they have a nucleus. Can you describe them?",
+        ],
+        "concise_explanations": [
+            "The cell membrane is like a security gate — it decides what gets in and out of the cell to keep it healthy.",
+            "Mitochondria are found in BOTH plant and animal cells because all living cells need energy to survive.",
+            "The cell wall is an extra rigid layer OUTSIDE the cell membrane — they're different structures with different jobs.",
+            "Plant cells have chloroplasts to make food from sunlight, but animal cells don't — animals get food by eating.",
+        ],
     },
+    # ── S7L1: Diversity of Living Organisms ──────────────
     {
         "name": "Diversity of Living Organisms",
         "standard": "S7L1",
@@ -55,6 +75,24 @@ TOPICS = [
             "Fungi are plants (fungi are their own kingdom)",
             "Classification groups never change (they are updated as new evidence is found)",
             "Organisms in the same kingdom are very similar (there is great diversity within kingdoms)",
+        ],
+        "expected_reasoning_patterns": [
+            "Explain WHY scientists classify organisms into groups rather than just listing them",
+            "Describe the hierarchical relationship between classification levels (broader to more specific)",
+            "Compare autotrophs and heterotrophs by explaining how each gets energy",
+            "Explain how adaptations connect to an organism's survival in its environment",
+        ],
+        "supportive_followup_prompts": [
+            "Scientists organize all living things into a system with different levels. Can you name any of those levels in order?",
+            "Why do you think scientists bother classifying organisms instead of just studying each one individually?",
+            "Some organisms make their own food and some have to eat other things. Can you explain the difference?",
+            "What tool do scientists use to figure out what kind of organism they're looking at, step by step?",
+        ],
+        "concise_explanations": [
+            "Classification helps scientists organize millions of species so they can study and compare them more easily.",
+            "Bacteria aren't all bad — many help us digest food, and some are used to make yogurt and cheese!",
+            "Fungi like mushrooms might look like plants, but they can't make their own food — they break down dead things instead.",
+            "Binomial nomenclature gives every species a two-part scientific name (like Homo sapiens) so scientists worldwide use the same name.",
         ],
     },
     # ── S7L2: Cells, Tissues, Organs, Organ Systems ─────
@@ -77,6 +115,24 @@ TOPICS = [
             "Organs work independently without interacting",
             "A tissue is the same as an organ",
             "Homeostasis means the body stays exactly the same at all times",
+        ],
+        "expected_reasoning_patterns": [
+            "Explain the progression from cells to organism as a building-up process",
+            "Describe how organ systems depend on each other with a specific example",
+            "Explain why specialized cells are important rather than having all cells be the same",
+            "Describe homeostasis as a dynamic balancing process, not a fixed state",
+        ],
+        "supportive_followup_prompts": [
+            "Can you walk me through the levels of organization in order, starting from the smallest?",
+            "Why can't organs do their job all by themselves — what else do they need?",
+            "What does it mean when we say the body tries to stay 'balanced'? Can you give an example?",
+            "If all your cells were exactly the same, what problems might your body have?",
+        ],
+        "concise_explanations": [
+            "A tissue is a group of SIMILAR cells doing the same job, while an organ is made of DIFFERENT tissues working together — like how your heart has muscle tissue, nerve tissue, and blood tissue.",
+            "Homeostasis doesn't mean your body never changes — it means your body is always making adjustments to stay in a healthy range, like a thermostat.",
+            "Your organ systems are like a team — the digestive system breaks down food, but the circulatory system has to deliver those nutrients to every cell.",
+            "Cells specialize so they can be really good at one job — a nerve cell is shaped differently from a muscle cell because they do totally different things.",
         ],
     },
     # ── S7L3: Reproduction & Genetics ────────────────────
@@ -103,6 +159,24 @@ TOPICS = [
             "All traits are determined by a single gene",
             "Dominant traits are always more common than recessive traits",
         ],
+        "expected_reasoning_patterns": [
+            "Explain the cause-and-effect relationship between sexual reproduction and genetic variation",
+            "Distinguish between inherited and acquired traits with reasoning, not just examples",
+            "Describe how DNA, genes, and chromosomes relate to each other (part-to-whole)",
+            "Explain WHY genetic variation matters for a population's survival",
+        ],
+        "supportive_followup_prompts": [
+            "What's the difference between a trait you're born with and a trait you develop during your life?",
+            "Why does sexual reproduction lead to more variety in offspring than asexual reproduction?",
+            "DNA, genes, and chromosomes are all related. Can you explain how they fit together?",
+            "There are two types of cell division. Can you describe what each one is used for?",
+        ],
+        "concise_explanations": [
+            "Genes are actually PART of DNA — think of DNA as a long instruction book, and genes are individual instructions within it.",
+            "If you build big muscles from exercise, your kids won't automatically have big muscles — that's an acquired trait, not an inherited one.",
+            "'Dominant' doesn't mean 'more common' — it means that allele shows up when you have at least one copy of it. A recessive trait can still be very common in a population.",
+            "Sexual reproduction mixes DNA from two parents, creating unique combinations — this variation helps populations survive when the environment changes.",
+        ],
     },
     # ── S7L4: Ecosystems & Interdependence ───────────────
     {
@@ -128,6 +202,24 @@ TOPICS = [
             "Food chains are linear and simple (food webs are complex networks)",
             "Removing one species from a food web has no effect on others",
         ],
+        "expected_reasoning_patterns": [
+            "Distinguish between energy flow (one-way) and matter cycling (recycled) in ecosystems",
+            "Explain the ripple effects of removing one organism from a food web",
+            "Describe symbiotic relationships by explaining how BOTH organisms are affected",
+            "Explain why energy decreases at each trophic level using the 10% rule",
+        ],
+        "supportive_followup_prompts": [
+            "Energy and matter both move through ecosystems, but they move differently. Can you explain how?",
+            "What would happen to an ecosystem if all the decomposers suddenly disappeared?",
+            "Can you describe a relationship between two organisms where both benefit? What about one where only one benefits?",
+            "If a predator is removed from a food web, what might happen to the organisms it used to eat — and what about the organisms THEY eat?",
+        ],
+        "concise_explanations": [
+            "Energy FLOWS through an ecosystem and gets used up (as heat), but matter like carbon and water gets RECYCLED over and over — they move in completely different ways.",
+            "Without decomposers, dead plants and animals would pile up and nutrients would stay locked inside them — other organisms wouldn't be able to use those nutrients to grow.",
+            "Not all organism relationships are competitive — in mutualism both species benefit, in commensalism one benefits and the other isn't affected, and in parasitism one benefits while the other is harmed.",
+            "The 10% rule means that when one organism eats another, only about 10% of the energy gets passed along — the rest is used for the organism's own life activities or lost as heat.",
+        ],
     },
     # ── S7L5: Evolution ──────────────────────────────────
     {
@@ -152,6 +244,24 @@ TOPICS = [
             "Humans evolved from modern monkeys (humans and monkeys share a common ancestor)",
             "Only the strongest survive (fitness means reproductive success, not physical strength)",
             "Evolution is 'just a theory' (scientific theories are well-supported explanations)",
+        ],
+        "expected_reasoning_patterns": [
+            "Explain natural selection as a multi-step process (variation → selection pressure → survival → reproduction)",
+            "Distinguish between individual change and population-level evolution",
+            "Explain how environmental change drives natural selection with a cause-and-effect chain",
+            "Use fossil evidence or homologous structures to support an argument about common ancestry",
+        ],
+        "supportive_followup_prompts": [
+            "Can an individual animal evolve during its own lifetime, or does evolution work differently? Explain your thinking.",
+            "Imagine the climate in a habitat suddenly gets much colder. How might that change which organisms survive?",
+            "Scientists sometimes find similar bone structures in very different animals. What might that tell us?",
+            "People sometimes say 'survival of the fittest.' What does 'fitness' actually mean in science?",
+        ],
+        "concise_explanations": [
+            "An individual organism can't evolve — evolution is a change that happens across a whole population over many generations as certain traits become more or less common.",
+            "Animals don't 'choose' to adapt — instead, individuals with traits that happen to help them survive are more likely to have babies, and those helpful traits get passed along.",
+            "Humans didn't evolve from today's monkeys — instead, humans and monkeys share a distant ancestor that lived millions of years ago, and both groups changed over time.",
+            "In science, 'fitness' doesn't mean being strong — it means how successful an organism is at surviving AND reproducing. A small, camouflaged animal can be more 'fit' than a large, visible one.",
         ],
     },
 ]
@@ -182,6 +292,9 @@ class Command(BaseCommand):
                     "description": data["description"],
                     "expected_concepts": data["expected_concepts"],
                     "common_misconceptions": data["common_misconceptions"],
+                    "expected_reasoning_patterns": data.get("expected_reasoning_patterns", []),
+                    "supportive_followup_prompts": data.get("supportive_followup_prompts", []),
+                    "concise_explanations": data.get("concise_explanations", []),
                 },
             )
             if created:

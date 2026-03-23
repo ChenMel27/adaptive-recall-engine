@@ -3,20 +3,74 @@
 
 {% block content %}
 <div class="summary-page">
+    {% if attempt.status == 'mastery' %}
+    <div id="confetti-container" class="confetti-container"></div>
+    {% endif %}
+
     <div class="summary-header">
-        <h1>{{ status_message }}</h1>
+        {% if attempt.turn_count == 0 %}
+        <span class="hero-mascot">👋</span>
+        <h1>No worries, {{ attempt.student_name }}!</h1>
+        {% elif attempt.status == 'mastery' %}
+        <span class="hero-mascot">🏆</span>
+        <h1>Amazing work, {{ attempt.student_name }}! 🎉</h1>
+        {% elif attempt.status == 'max_turns' %}
+        <span class="hero-mascot">💪</span>
+        <h1>Great effort, {{ attempt.student_name }}!</h1>
+        {% else %}
+        <span class="hero-mascot">👋</span>
+        <h1>Thanks for practicing, {{ attempt.student_name }}!</h1>
+        {% endif %}
         <p class="topic-badge">[{{ attempt.topic.standard }}] {{ attempt.topic.name }}</p>
-        <p class="session-meta">{{ attempt.student_name }} &bull; {{ attempt.get_mode_display }} &bull; {{ attempt.turn_count }} turns</p>
+        {% if attempt.turn_count == 0 %}
+        <p class="session-meta">{{ attempt.get_mode_display }} &bull; No rounds completed</p>
+        {% else %}
+        <p class="session-meta">{{ attempt.get_mode_display }} &bull; {{ attempt.turn_count }} rounds completed</p>
+        {% endif %}
     </div>
 
+    {% if attempt.turn_count == 0 %}
     <div class="summary-card">
-        <h2>📊 Your Session Summary</h2>
+        <h2>🚀 Ready When You Are</h2>
+        <p class="summary-text">You didn't get to answer any questions this time, and that's totally okay! When you're ready, come back and give <strong>{{ attempt.topic.name }}</strong> a try — your brain might surprise you with how much it already knows.</p>
+    </div>
+    {% else %}
+
+    {% if attempt.status == 'mastery' %}
+    <div class="encouragement-banner">
+        {% if attempt.mode == 'transfer' %}🌉 You completed all transfer levels! You can apply your knowledge anywhere! 🌟
+        {% else %}🏆 You showed strong understanding! Your reflection skills are growing! 🌱
+        {% endif %}
+    </div>
+    {% elif attempt.status == 'max_turns' %}
+    <div class="encouragement-banner" style="background: linear-gradient(135deg, #00b894, #55efc4);">💪 You completed all rounds! Every explanation you wrote made your understanding stronger. Noticing what you don't know yet is a big part of learning!</div>
+    {% endif %}
+
+    {% if attempt.mode == 'transfer' %}
+    <div class="transfer-stats">
+        <div class="transfer-stat-card">
+            <span class="transfer-stat-number">{{ attempt.current_transfer_level|add:"-1" }}</span>
+            <span class="transfer-stat-label">Levels Completed</span>
+        </div>
+        <div class="transfer-stat-card">
+            <span class="transfer-stat-number">{{ attempt.turn_count }}</span>
+            <span class="transfer-stat-label">Total Attempts</span>
+        </div>
+        <div class="transfer-stat-card">
+            <span class="transfer-stat-number">{{ attempt.correct_followups }}</span>
+            <span class="transfer-stat-label">Successful Transfers</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="summary-card">
+        <h2>📊 Your Session Recap</h2>
         <p class="summary-text">{{ ai_summary.summary_text }}</p>
     </div>
 
     <div class="summary-grid">
         <div class="summary-section success-section">
-            <h3>✅ What You Know Well</h3>
+            <h3>🎯 What You Nailed</h3>
             {% if ai_summary.what_you_know_well %}
             <ul class="summary-list">
                 {% for concept in ai_summary.what_you_know_well %}
@@ -24,9 +78,21 @@
                 {% endfor %}
             </ul>
             {% else %}
-            <p class="empty-state">Keep practicing — you're building knowledge!</p>
+            <p class="empty-state">Keep at it — you're building knowledge every session!</p>
             {% endif %}
         </div>
+
+        {% if ai_summary.needed_a_nudge %}
+        <div class="summary-section nudge-section">
+            <h3>💡 Got It With a Nudge</h3>
+            <p class="nudge-explanation">You got these right after a follow-up question helped you think deeper. Nice work! Try recalling these on your own next time.</p>
+            <ul class="summary-list">
+                {% for concept in ai_summary.needed_a_nudge %}
+                <li>{{ concept }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
         <div class="summary-section review-section">
             <h3>📖 What to Review Next</h3>
@@ -37,29 +103,34 @@
                 {% endfor %}
             </ul>
             {% else %}
-            <p class="empty-state">Nothing major to review — great job!</p>
+            <p class="empty-state">Nothing major to review — you crushed it! 🎉</p>
             {% endif %}
         </div>
     </div>
 
     {% if ai_summary.reflection_prompt %}
     <div class="reflection-card">
-        <h3>🤔 Something to Think About</h3>
+        <h3>🤔 Something to Think About...</h3>
         <p class="reflection-prompt">{{ ai_summary.reflection_prompt }}</p>
+        {% if ai_summary.study_strategy_prompt %}
+        <p class="reflection-prompt" style="margin-top: 1rem;">{{ ai_summary.study_strategy_prompt }}</p>
+        {% endif %}
     </div>
+    {% endif %}
+
     {% endif %}
 
     {% if turns %}
     <details class="conversation-history">
-        <summary>📜 View Full Conversation ({{ turns.count }} turns)</summary>
+        <summary>📜 See Your Full Conversation ({{ turns.count }} rounds)</summary>
         <div class="history-list">
             {% for turn in turns %}
             <div class="history-item">
-                <div class="history-prompt"><strong>Turn {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
+                <div class="history-prompt"><strong>Round {{ turn.turn_number }}:</strong> {{ turn.prompt }}</div>
                 <div class="history-response">{{ turn.student_response }}</div>
                 {% if turn.is_correct is not None %}
                 <span class="tag {% if turn.is_correct %}tag-success{% else %}tag-warning{% endif %}">
-                    {% if turn.is_correct %}✓ Correct{% else %}↻ Needs Review{% endif %}
+                    {% if turn.is_correct %}🎯 Nailed It{% else %}🔄 Keep Exploring{% endif %}
                 </span>
                 {% endif %}
                 {% if turn.ai_feedback.overall_feedback %}
@@ -74,8 +145,32 @@
     {% endif %}
 
     <div class="summary-actions">
-        <a href="{% url 'recall:home' %}" class="btn btn-primary">Start a New Session →</a>
-        <a href="{% url 'recall:dashboard' %}" class="btn btn-outline">View Dashboard</a>
+        <a href="{% url 'recall:home' %}" class="btn btn-primary">Try Another Topic 🚀</a>
+        <a href="{% url 'recall:dashboard' %}" class="btn btn-outline">📊 Dashboard</a>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if attempt.status == 'mastery' %}
+<script>
+(function() {
+    var container = document.getElementById('confetti-container');
+    var colors = ['#6c5ce7', '#fd79a8', '#00b894', '#fdcb6e', '#74b9ff', '#e17055', '#a29bfe'];
+    for (var i = 0; i < 60; i++) {
+        var piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        piece.style.left = Math.random() * 100 + '%';
+        piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+        piece.style.animationDelay = Math.random() * 2 + 's';
+        piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+        piece.style.width = (6 + Math.random() * 8) + 'px';
+        piece.style.height = (6 + Math.random() * 8) + 'px';
+        piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        container.appendChild(piece);
+    }
+    setTimeout(function() { container.style.display = 'none'; }, 5000);
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -141,3 +141,17 @@ Settings in `config/settings.py`:
 - **Adaptive**: Questions target individual gaps, not one-size-fits-all
 - **Student-controlled**: Opt-out at any time with a supportive summary
 - **Age-appropriate**: Language and tone designed for grades 6–8
+
+---
+
+## Documentation (Mermaid Diagrams)
+
+Visual documentation lives in the `docs/` folder — each file contains [Mermaid](https://mermaid.js.org/) diagrams that render on GitHub.
+
+| Document | Contents |
+|----------|----------|
+| [`docs/architecture.md`](docs/architecture.md) | System architecture, request/response flow, directory structure |
+| [`docs/data-models.md`](docs/data-models.md) | ER diagram, model relationships, status lifecycle, mastery logic |
+| [`docs/user-flows.md`](docs/user-flows.md) | Full app flowchart, Mode 1 & Mode 2 sequences, summary generation |
+| [`docs/ai-pipeline.md`](docs/ai-pipeline.md) | AI service overview, prompt→response flow, response schemas, model constraints |
+| [`docs/url-routes.md`](docs/url-routes.md) | Route map, view→template mapping, HTTP method summary |
