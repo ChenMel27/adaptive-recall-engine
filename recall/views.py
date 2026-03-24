@@ -223,6 +223,11 @@ def notes_upload(request, attempt_id):
 def notes_upload_submit(request, attempt_id):
     """Process uploaded PDF, extract text, analyse concepts, generate quiz."""
     attempt = get_object_or_404(Attempt, pk=attempt_id, mode="notes_quiz")
+
+    # Prevent duplicate uploads (double-click / refresh)
+    if hasattr(attempt, "note_upload"):
+        return redirect("recall:quiz", attempt_id=attempt.pk)
+
     form = NotesUploadForm(request.POST, request.FILES)
 
     if not form.is_valid():
@@ -281,7 +286,8 @@ def notes_upload_submit(request, attempt_id):
     # AI: generate quiz questions
     num_questions = min(max(len(missing) + len(misconceptions), 3), 6)
     quiz_data = ai_service.generate_quiz_questions(
-        topic, covered, missing, misconceptions, num_questions
+        topic, covered, missing, misconceptions, num_questions,
+        notes_text=extracted_text,
     )
 
     if "error" in quiz_data:

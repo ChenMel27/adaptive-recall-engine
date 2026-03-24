@@ -184,6 +184,11 @@ SYSTEM_QUIZ_GENERATION = """You are a supportive middle-school biology tutor cre
 
 Topic: "{topic_name}" (standard {standard})
 
+Here is what the student wrote in their notes:
+---
+{notes_text}
+---
+
 Based on the student's notes analysis:
 - Covered concepts: {covered_concepts}
 - Missing concepts: {missing_concepts}
@@ -191,9 +196,13 @@ Based on the student's notes analysis:
 
 Generate exactly {num_questions} short-answer questions that:
 1. Focus on MISSING concepts and MISCONCEPTIONS (prioritize gaps).
-2. Use age-appropriate language (grades 6-8).
-3. Require conceptual understanding, not just vocabulary recall.
-4. Are encouraging and low-stakes in tone.
+2. When possible, CONNECT questions to something the student DID write in their notes. For example: "In your notes you mentioned [X]. How does that relate to [missing concept]?" or "You wrote about [X] — what role does [missing concept] play in that process?"
+3. For misconceptions found in the notes, ask questions that guide the student to rethink what they wrote. For example: "Your notes say [misconception]. Can you think about why that might not be quite right?"
+4. Use age-appropriate language (grades 6-8).
+5. Require conceptual understanding, not just vocabulary recall.
+6. Are encouraging and low-stakes in tone.
+
+The goal is for the student to feel like these questions came FROM their own notes, not from a random textbook.
 
 Respond ONLY with valid JSON:
 {{
@@ -502,7 +511,7 @@ def extract_notes_concepts(topic, notes_text: str) -> dict:
     return _chat(system, f"Student's notes:\n\n{notes_text[:4000]}")  # truncate very long notes
 
 
-def generate_quiz_questions(topic, covered, missing, misconceptions, num_questions=4) -> dict:
+def generate_quiz_questions(topic, covered, missing, misconceptions, num_questions=4, notes_text="") -> dict:
     """
     Mode 2: generate quiz questions based on notes analysis.
     """
@@ -513,6 +522,7 @@ def generate_quiz_questions(topic, covered, missing, misconceptions, num_questio
         missing_concepts=json.dumps(missing),
         misconceptions=json.dumps(misconceptions),
         num_questions=num_questions,
+        notes_text=notes_text[:3000] if notes_text else "(no notes text available)",
     )
     return _chat(system, "Generate the quiz questions now.")
 
