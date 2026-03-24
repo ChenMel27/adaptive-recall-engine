@@ -1,39 +1,49 @@
-# 🧬 BioRecall — Adaptive Recall Engine
+# BioRecall — Adaptive Recall Engine
 
-A **low-stakes metacognitive biology learning platform** for middle school students (Grades 6–8), aligned to the **Georgia Standards of Excellence** (S7L1–S7L5).
+## What is this?
 
-Instead of graded quizzes, BioRecall uses two interactive modes to help students discover what they know, identify gaps, and strengthen understanding through guided active recall.
+BioRecall is a web app I built to help middle school biology students (grades 6–8) study smarter. It's aligned to the Georgia Standards of Excellence (S7L1–S7L5) and uses AI to give students real-time feedback on what they know and what they're still working on — without any grades or pressure.
+
+The idea came from research on **active recall** and **metacognition** — basically, students learn better when they practice pulling information from memory instead of just re-reading their notes, and when they become aware of their own knowledge gaps. BioRecall is designed around those principles.
 
 ---
 
-## Features
+## How It Works
 
-### Mode 1 — Brain Dump ("Word Vomit")
-1. Student picks a topic and types **everything they remember**.
-2. AI analyzes the response for **demonstrated concepts**, **missing concepts**, and **misconceptions**.
-3. The system generates **targeted follow-up questions** that probe the biggest gaps.
-4. Loop continues until: **mastery threshold met**, **max turns reached (6)**, or **student opts out**.
-5. Session ends with an encouraging **summary + reflection prompt**.
+There are three study modes. Students pick a biology topic, then choose how they want to practice.
+
+### Mode 1 — Brain Dump
+The student types everything they can remember about a topic in their own words. The AI reads their response and figures out which concepts they nailed, which ones they missed, and whether they have any misconceptions. Then it asks a follow-up question targeting their biggest gap. This back-and-forth continues for up to 6 rounds (or until the student reaches mastery or decides to stop).
 
 ### Mode 2 — Notes Upload & Quiz
-1. Student uploads a **PDF of class notes**.
-2. AI extracts concepts and generates a **personalized short-answer quiz** focused on gaps.
-3. Each answer gets **immediate formative feedback** — no grades, no pressure.
-4. Summary highlights strengths and areas to review.
+The student uploads a PDF of their class notes. The AI reads through the notes, identifies what's covered and what's missing, and generates a short quiz based on the gaps. Questions are connected to what the student actually wrote, so it feels personalized rather than random. Each answer gets immediate feedback.
 
-### End Condition Logic
-| Rule | Condition |
-|------|-----------|
-| **Mastery** | 0 misconceptions remaining AND ≤ 2 missing concepts AND ≥ 2 correct follow-ups |
-| **Hard Cap** | Turn count ≥ 6 |
-| **Opt-Out** | Student clicks "Stop Here" → gets summary of strengths, gaps, and a reflection prompt |
+### Mode 3 — Transfer Challenge
+This one tests whether students can apply what they've learned in a completely new context. The AI generates scenarios in unfamiliar domains (cooking, engineering, space, etc.) and the student has to recognize the underlying biology. There are 4 levels of increasing difficulty, from near transfer to creative problem-solving.
+
+### After Every Session
+Students get a summary that breaks down:
+- **What they nailed** — concepts they explained well
+- **Got it with a nudge** — concepts they got right, but only after a follow-up question
+- **What to review next** — gaps that still need work
+- A reflection prompt to encourage metacognitive thinking
 
 ### Teacher Dashboard
-View all student sessions, status, and topic coverage at a glance.
+There's also a simple dashboard where teachers can see all student sessions, which topics have been covered, and how students are doing overall.
 
 ---
 
-## Standards Alignment
+## How Sessions End
+
+| Condition | What happens |
+|-----------|-------------|
+| Mastery reached | No misconceptions left, 2 or fewer missing concepts, at least 2 correct follow-ups |
+| Max rounds hit | Session ends after 6 rounds |
+| Student opts out | Student clicks "Stop Here" and gets their summary |
+
+---
+
+## Standards Covered
 
 | Standard | Topic |
 |----------|-------|
@@ -45,113 +55,111 @@ View all student sessions, status, and topic coverage at a glance.
 
 ---
 
-## Tech Stack
+## Built With
 
-- **Backend**: Django 5.1 (Python 3.12)
-- **AI**: OpenAI GPT-5-mini (via `openai` SDK)
-- **Database**: SQLite (development)
-- **PDF Parsing**: PyPDF2
-- **Frontend**: Django templates + custom CSS (no JavaScript frameworks)
+- **Python / Django** — handles all the backend logic and page rendering
+- **OpenAI API** — powers the AI feedback, question generation, and concept analysis
+- **SQLite** — lightweight database (no setup needed)
+- **PyPDF2** — extracts text from uploaded PDF notes
+- **HTML/CSS** — simple frontend, no JavaScript frameworks
+
+---
+
+## Getting It Running
+
+You'll need **Python 3.12+** installed. If you're not sure, open a terminal and type `python3 --version`.
+
+You'll also need an **OpenAI API key** — you can get one at [platform.openai.com](https://platform.openai.com/).
+
+### Step-by-step setup
+
+```bash
+# 1. Clone the repo and go into the folder
+git clone <repo-url>
+cd adaptive-recall-engine
+
+# 2. (Recommended) Create a virtual environment so packages don't conflict
+python3 -m venv venv
+source venv/bin/activate
+
+# 3. Install the required packages
+pip install -r requirements.txt
+
+# 4. Set up your API key
+cp .env.example .env
+# Open the .env file and paste your OpenAI API key where it says "your-openai-api-key-here"
+
+# 5. Set up the database
+python3 manage.py migrate
+
+# 6. Load the biology topics into the database
+python3 manage.py seed_topics
+
+# 7. Start the server
+python3 manage.py runserver
+```
+
+Then open **http://127.0.0.1:8000/** in your browser. That's it.
+
+> **Optional:** If you want access to Django's admin panel (to view/edit data directly), run `python3 manage.py createsuperuser` and follow the prompts. Then go to `http://127.0.0.1:8000/admin/`.
 
 ---
 
 ## Project Structure
 
+Here's a quick overview of what's in each folder:
+
 ```
 adaptive-recall-engine/
-├── config/               # Django project settings & root URL config
-│   ├── settings.py
-│   ├── urls.py
-│   └── wsgi.py
-├── recall/               # Main application
-│   ├── models.py         # Topic, ConceptTag, Attempt, Turn, NoteUpload
-│   ├── views.py          # All view logic for both modes
-│   ├── ai_service.py     # OpenAI API wrapper + prompt engineering
-│   ├── forms.py          # Django forms
-│   ├── urls.py           # App URL routing
-│   ├── admin.py          # Django admin configuration
-│   └── management/
-│       └── commands/
-│           └── seed_topics.py  # Seed 6 biology topics (S7L1–S7L5)
-├── templates/recall/     # HTML templates
-│   ├── base.html
-│   ├── home.html
-│   ├── brain_dump.html
-│   ├── notes_upload.html
-│   ├── quiz.html
-│   ├── summary.html
-│   └── dashboard.html
-├── static/css/style.css  # Full stylesheet
-├── requirements.txt
-├── .env.example
-└── manage.py
+├── config/               # Project settings, URL routing
+├── recall/               # Main app — models, views, AI logic, forms
+│   ├── models.py         # Database models (topics, attempts, turns, etc.)
+│   ├── views.py          # Page logic for all three modes
+│   ├── ai_service.py     # All the OpenAI prompts and API calls
+│   ├── forms.py          # Form handling
+│   └── management/       # Custom commands (like seeding topics)
+├── templates/recall/     # HTML pages
+├── static/css/           # Stylesheet
+├── docs/                 # Architecture diagrams (Mermaid format)
+├── requirements.txt      # Python dependencies
+└── manage.py             # Django entry point
 ```
 
 ---
 
-## Quick Start
+## Design Decisions
 
-```bash
-# 1. Clone the repository
-git clone <repo-url>
-cd adaptive-recall-engine
+A few things that shaped how I built this:
 
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Set up environment variables
-cp .env.example .env
-# Edit .env and add your OpenAI API key
-
-# 4. Run migrations
-python manage.py migrate
-
-# 5. Seed biology topics
-python manage.py seed_topics
-
-# 6. (Optional) Create a superuser for the admin panel
-python manage.py createsuperuser
-
-# 7. Start the development server
-python manage.py runserver
-```
-
-Then open **http://127.0.0.1:8000/** in your browser.
+- **No grades.** Everything is framed as reflection, not evaluation. The language is intentionally warm and encouraging ("not quite" instead of "wrong").
+- **Partial credit isn't free.** If a student says something vaguely correct (like "traits are passed down") but misses the key mechanism (genes), the AI keeps it as a gap and probes further instead of just giving credit.
+- **Nudge tracking.** If a student only gets a concept right after a follow-up question, they still get credit — but it shows up in the summary as "needed a nudge" so they know to practice recalling it independently.
+- **Questions come from the student's notes.** In Mode 2, quiz questions reference what the student actually wrote in their PDF, so it doesn't feel like a generic worksheet.
+- **Students can stop anytime.** Clicking "Stop Here" gives a supportive summary instead of penalizing them.
 
 ---
 
 ## Configuration
 
-Settings in `config/settings.py`:
+These settings live in `config/settings.py` and control session behavior:
 
-| Setting | Default | Description |
+| Setting | Default | What it does |
 |---------|---------|-------------|
-| `MAX_TURNS` | 6 | Maximum turns per session |
-| `MASTERY_THRESHOLD_MISSING` | 2 | Max missing concepts for mastery |
-| `MASTERY_THRESHOLD_MISCONCEPTIONS` | 0 | Max misconceptions for mastery |
-| `MASTERY_CORRECT_FOLLOWUPS` | 2 | Correct follow-ups needed for mastery |
+| `MAX_TURNS` | 6 | How many rounds before a session auto-ends |
+| `MASTERY_THRESHOLD_MISSING` | 2 | How many concepts can still be missing and count as mastery |
+| `MASTERY_THRESHOLD_MISCONCEPTIONS` | 0 | Max misconceptions allowed for mastery (must be zero) |
+| `MASTERY_CORRECT_FOLLOWUPS` | 2 | How many follow-ups the student needs to get right |
 
 ---
 
-## Design Principles
+## Docs
 
-- **Low-stakes**: No grades, no penalties — learning-focused feedback only
-- **Active recall**: Students retrieve information from memory, not re-read notes
-- **Metacognitive**: Students become aware of what they know and don't know
-- **Adaptive**: Questions target individual gaps, not one-size-fits-all
-- **Student-controlled**: Opt-out at any time with a supportive summary
-- **Age-appropriate**: Language and tone designed for grades 6–8
+The `docs/` folder has more detailed diagrams if you want to dig into the architecture:
 
----
+- [Architecture overview](docs/architecture.md)
+- [Data models & relationships](docs/data-models.md)
+- [User flow diagrams](docs/user-flows.md)
+- [AI pipeline & prompts](docs/ai-pipeline.md)
+- [URL routes](docs/url-routes.md)
 
-## Documentation (Mermaid Diagrams)
-
-Visual documentation lives in the `docs/` folder — each file contains [Mermaid](https://mermaid.js.org/) diagrams that render on GitHub.
-
-| Document | Contents |
-|----------|----------|
-| [`docs/architecture.md`](docs/architecture.md) | System architecture, request/response flow, directory structure |
-| [`docs/data-models.md`](docs/data-models.md) | ER diagram, model relationships, status lifecycle, mastery logic |
-| [`docs/user-flows.md`](docs/user-flows.md) | Full app flowchart, Mode 1 & Mode 2 sequences, summary generation |
-| [`docs/ai-pipeline.md`](docs/ai-pipeline.md) | AI service overview, prompt→response flow, response schemas, model constraints |
-| [`docs/url-routes.md`](docs/url-routes.md) | Route map, view→template mapping, HTTP method summary |
+These use [Mermaid](https://mermaid.js.org/) syntax and render directly on GitHub.
